@@ -142,12 +142,15 @@ function interpolateStraight(a, b, seg, stepsPerSeg = 48) {
 // 항목들 사이를 실제 도로를 따라 잇는다. OSRM이 응답을 못 주는 구간만 직선으로 대체(완전히 끊기지 않게).
 // 비행기 구간은 애초에 도로를 따라갈 이유가 없어서(국내외 장거리는 OSRM 자동차 경로 자체가 무의미)
 // API를 부르지 않고 항상 직선으로 잇는다.
+// move는 "이 항목에서 다음 항목으로 이동하는 수단"으로 취급한다(moves[i] = points[i]→points[i+1] 구간) —
+// 도착지가 아니라 출발지 항목에 걸어야 적용되는 게 더 직관적이라는 피드백으로 바꿈
+// (예: "김포공항"에 이동수단=항공을 걸면 거기서 다음 장소로 가는 구간이 비행기가 됨).
 async function buildRoadPath(points, moves) {
   const segments = await Promise.all(
     points.slice(0, -1).map(async (a, i) => {
       const b = points[i + 1];
-      if (moves[i + 1] === "항공") return interpolateStraight(a, b, i);
-      const profile = moves[i + 1] === "도보" ? "foot" : "driving";
+      if (moves[i] === "항공") return interpolateStraight(a, b, i);
+      const profile = moves[i] === "도보" ? "foot" : "driving";
       const roadPoints = await fetchRoute(a, b, profile).catch(() => null);
       if (roadPoints?.length > 1) {
         return roadPoints.map(([lat, lng]) => ({ lat, lng, seg: i }));
@@ -286,7 +289,7 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
         return;
       }
       const p = seg[i];
-      const move = geocoded[p.seg + 1]?.move;
+      const move = geocoded[p.seg]?.move;
       const style = moveStyleFor(move);
       walkStateRef.current.facing = p.lng >= prev.lng ? 1 : -1;
       walkStateRef.current.step = (walkStateRef.current.step + 1) % 4;

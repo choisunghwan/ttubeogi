@@ -181,7 +181,7 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
           <div style={s.formLabel}>지도 링크 붙여넣기 (선택)</div>
           <input style={s.formInput} value={mapLink} onChange={(e) => setMapLink(e.target.value)} placeholder="구글맵/카카오맵 링크" />
 
-          <div style={s.formLabel}>이동수단</div>
+          <div style={s.formLabel}>다음 장소까지 이동수단</div>
           <div style={s.pickerGrid}>
             {MOVE_OPTIONS.map((m) => (
               <button type="button" key={m}

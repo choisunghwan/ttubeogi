@@ -32,8 +32,8 @@ export default function ItemRow({ item, creator, dayDate, planTitle, highlighted
         <div style={s.itemRowName}>{item.name}</div>
         <div style={{ ...s.itemRowMeta, display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
           {item.move && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-              <MoveIcon move={item.move} size={13} color={C.muted} /> {item.move}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }} title="다음 장소까지 이동수단">
+              다음 <MoveIcon move={item.move} size={13} color={C.muted} /> {item.move}
             </span>
           )}
           {item.move && creator ? "·" : ""}
