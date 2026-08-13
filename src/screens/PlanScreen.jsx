@@ -12,20 +12,22 @@ import { getPlan, joinPlan, deleteItem, reorderItems } from "../lib/api";
 import { getMemberId, rememberPlan } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
 import { usePlanSocket } from "../lib/ws";
+import { getMe, KAKAO_LOGIN_URL } from "../lib/auth";
 
 function JoinGate({ planId, onJoined }) {
   const navigate = useNavigate();
+  const [me, setMe] = useState(undefined); // undefined = 확인 중, null = 비로그인
   const [name, setName] = useState("");
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState(null);
 
-  async function handleJoin(e) {
-    e.preventDefault();
-    if (!name.trim()) return;
+  useEffect(() => { getMe().then(setMe); }, []);
+
+  async function join(nameToUse) {
     setJoining(true);
     setError(null);
     try {
-      const { memberId } = await joinPlan(planId, name.trim());
+      const { memberId } = await joinPlan(planId, nameToUse);
       rememberPlan(planId, memberId);
       onJoined(memberId);
     } catch (err) {
@@ -39,18 +41,38 @@ function JoinGate({ planId, onJoined }) {
       <div style={s.joinCard}>
         <WalkTtubeogi size={48} />
         <h2 style={{ ...s.h1, marginTop: 12, marginBottom: 4 }}>일정에 참여하기</h2>
-        <div style={{ color: C.muted, fontSize: 13.5, marginBottom: 8 }}>
-          로그인 없이 이름만 입력하면 바로 같이 만들 수 있어요.
-        </div>
-        <form onSubmit={handleJoin}>
-          <input style={s.formInput} value={name} onChange={(e) => setName(e.target.value)}
-                 placeholder="이름을 입력하세요" autoFocus />
-          {error && <div style={s.formError}>{error}</div>}
-          <button type="submit" style={{ ...s.submitBtn, ...((!name.trim() || joining) ? s.submitBtnDisabled : {}) }}
-                  disabled={!name.trim() || joining}>
-            {joining ? "참여하는 중…" : "참여하기"}
-          </button>
-        </form>
+
+        {me ? (
+          <>
+            <div style={{ color: C.muted, fontSize: 13.5, marginBottom: 8 }}>
+              {me.nickname}님으로 참여할게요.
+            </div>
+            {error && <div style={s.formError}>{error}</div>}
+            <button style={{ ...s.submitBtn, ...(joining ? s.submitBtnDisabled : {}) }} disabled={joining}
+                    onClick={() => join(null)}>
+              {joining ? "참여하는 중…" : `${me.nickname}님으로 참여하기`}
+            </button>
+          </>
+        ) : (
+          <>
+            <div style={{ color: C.muted, fontSize: 13.5, marginBottom: 8 }}>
+              로그인 없이 이름만 입력하면 바로 같이 만들 수 있어요.
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); if (name.trim()) join(name.trim()); }}>
+              <input style={s.formInput} value={name} onChange={(e) => setName(e.target.value)}
+                     placeholder="이름을 입력하세요" autoFocus />
+              {error && <div style={s.formError}>{error}</div>}
+              <button type="submit" style={{ ...s.submitBtn, ...((!name.trim() || joining) ? s.submitBtnDisabled : {}) }}
+                      disabled={!name.trim() || joining}>
+                {joining ? "참여하는 중…" : "참여하기"}
+              </button>
+            </form>
+            <a href={KAKAO_LOGIN_URL} style={{ ...s.formHint, display: "block", marginTop: 10 }}>
+              🟡 카카오로 로그인하고 참여하기
+            </a>
+          </>
+        )}
+
         <button style={{ ...s.backBtn, marginTop: 14 }} onClick={() => navigate("/")}>◀ 홈으로</button>
       </div>
     </div>

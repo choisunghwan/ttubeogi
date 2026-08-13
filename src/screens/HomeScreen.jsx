@@ -6,20 +6,29 @@ import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import { listMyPlans } from "../lib/api";
 import { getKnownPlanIds } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
+import { getMe, logout, KAKAO_LOGIN_URL } from "../lib/auth";
 
-// 화면 0: 홈 (여행·데이트·약속 전체 목록) — 이 브라우저가 만들었거나 참여한 일정만 보여준다.
+// 화면 0: 홈 (여행·데이트·약속 전체 목록) — 이 브라우저가 만들었거나 참여한 일정 + (로그인 시) 계정 소유 일정.
 export default function HomeScreen() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState(null); // null = 로딩 중
   const [error, setError] = useState(null);
+  const [me, setMe] = useState(undefined); // undefined = 확인 중, null = 비로그인
 
   useEffect(() => {
     let cancelled = false;
+    getMe().then((u) => { if (!cancelled) setMe(u); });
     listMyPlans(getKnownPlanIds())
       .then((data) => { if (!cancelled) setPlans(data); })
       .catch((e) => { if (!cancelled) setError(e.message); });
     return () => { cancelled = true; };
   }, []);
+
+  async function handleLogout() {
+    if (!window.confirm("로그아웃할까요?")) return;
+    await logout();
+    setMe(null);
+  }
 
   const upcoming = (plans || []).filter((p) => p.status === "upcoming")
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
@@ -61,7 +70,13 @@ export default function HomeScreen() {
             <WalkTtubeogi size={28} /> 뚜버기
           </h1>
         </div>
-        <div style={s.profileDot}>나</div>
+        {me ? (
+          <div style={s.profileDot} title={`${me.nickname}님으로 로그인됨`} onClick={handleLogout}>
+            {me.nickname[0]}
+          </div>
+        ) : (
+          <div style={{ width: 34, height: 34 }} />
+        )}
       </div>
 
       <div style={s.homeGreeting}>
@@ -70,6 +85,15 @@ export default function HomeScreen() {
           여행이든 데이트든, 같이 만들어요
         </span>
       </div>
+
+      {me === null && (
+        <a href={KAKAO_LOGIN_URL} style={s.formHint}>
+          🟡 카카오로 로그인하면 기기를 바꿔도 내 일정이 계속 보여요 →
+        </a>
+      )}
+      {me && (
+        <div style={s.formHint}>{me.nickname}님으로 로그인됨 (프로필 아이콘 눌러서 로그아웃)</div>
+      )}
 
       {plans === null && !error && <div style={s.emptyState}>불러오는 중…</div>}
       {error && <div style={s.emptyState}>목록을 불러오지 못했어요: {error}</div>}

@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { newPlanId, newId } from "../ids.js";
+import { getSessionUser } from "../lib/session.js";
 
 // 멤버 아바타 색상 팔레트. src/theme.js의 C.orange/member2/member3와 값 맞춤 + 추가 색상.
 const MEMBER_COLORS = ["#e8863a", "#5b8c7b", "#7a6cc4", "#d9534f", "#4a6fa5", "#c0568f"];
@@ -52,11 +53,13 @@ const app = new Hono();
 app.post("/", async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const { kind, title, startDate, endDate, region, creatorName } = body;
+  const sessionUser = await getSessionUser(c);
+  const finalCreatorName = creatorName?.trim() || sessionUser?.nickname;
 
   if (!KINDS.has(kind)) return c.json({ error: "kind는 여행/데이트/약속 중 하나여야 합니다" }, 400);
   if (!title?.trim()) return c.json({ error: "title은 필수입니다" }, 400);
   if (!startDate) return c.json({ error: "startDate는 필수입니다" }, 400);
-  if (!creatorName?.trim()) return c.json({ error: "creatorName은 필수입니다" }, 400);
+  if (!finalCreatorName) return c.json({ error: "creatorName은 필수입니다" }, 400);
   const finalEndDate = endDate || startDate;
 
   const planId = newPlanId(title);
@@ -68,8 +71,8 @@ app.post("/", async (c) => {
       "INSERT INTO plans (id, kind, title, start_date, end_date, region, status) VALUES (?, ?, ?, ?, ?, ?, 'upcoming')"
     ).bind(planId, kind, title.trim(), startDate, finalEndDate, region || null),
     c.env.DB.prepare(
-      "INSERT INTO members (id, plan_id, name, color) VALUES (?, ?, ?, ?)"
-    ).bind(memberId, planId, creatorName.trim(), MEMBER_COLORS[0]),
+      "INSERT INTO members (id, plan_id, name, color, user_id) VALUES (?, ?, ?, ?, ?)"
+    ).bind(memberId, planId, finalCreatorName, MEMBER_COLORS[0], sessionUser?.id ?? null),
     ...days.map((date, i) =>
       c.env.DB.prepare("INSERT INTO days (id, plan_id, date, sort_order) VALUES (?, ?, ?, ?)").bind(
         newId("day"),
@@ -87,7 +90,18 @@ app.post("/", async (c) => {
 // GET /api/plans?ids=a,b,c — 홈 화면용 배치 조회. id를 아는 일정만 볼 수 있다(전체 목록 없음).
 app.get("/", async (c) => {
   const idsParam = c.req.query("ids") || "";
-  const ids = [...new Set(idsParam.split(",").map((s) => s.trim()).filter(Boolean))].slice(0, 50);
+  const localIds = idsParam.split(",").map((s) => s.trim()).filter(Boolean);
+
+  // 로그인 상태면 localStorage로 아는 id 목록에, 이 계정 소유(로그인해서 만들었거나 참여한) 일정도 합쳐준다 —
+  // 이게 "로그인하면 기기 바꿔도 내 일정이 보인다"의 핵심.
+  const sessionUser = await getSessionUser(c);
+  let accountIds = [];
+  if (sessionUser) {
+    const owned = await c.env.DB.prepare("SELECT DISTINCT plan_id FROM members WHERE user_id = ?").bind(sessionUser.id).all();
+    accountIds = owned.results.map((r) => r.plan_id);
+  }
+
+  const ids = [...new Set([...localIds, ...accountIds])].slice(0, 50);
   if (ids.length === 0) return c.json([]);
 
   const placeholders = ids.map(() => "?").join(",");
@@ -179,17 +193,27 @@ app.get("/:id", async (c) => {
 app.post("/:id/members", async (c) => {
   const id = c.req.param("id");
   const { name } = await c.req.json().catch(() => ({}));
-  if (!name?.trim()) return c.json({ error: "name은 필수입니다" }, 400);
+  const sessionUser = await getSessionUser(c);
+  const finalName = name?.trim() || sessionUser?.nickname;
+  if (!finalName) return c.json({ error: "name은 필수입니다" }, 400);
 
   const plan = await c.env.DB.prepare("SELECT id FROM plans WHERE id = ?").bind(id).first();
   if (!plan) return c.json({ error: "일정을 찾을 수 없습니다" }, 404);
+
+  // 로그인 상태면 이 계정이 이 일정에 이미 참여해 있는지 먼저 확인 — 다른 기기에서 다시 로그인해서
+  // 들어와도 멤버가 중복 생성되지 않게.
+  if (sessionUser) {
+    const already = await c.env.DB.prepare("SELECT id, color FROM members WHERE plan_id = ? AND user_id = ?")
+      .bind(id, sessionUser.id).first();
+    if (already) return c.json({ memberId: already.id, color: already.color });
+  }
 
   const { count } = await c.env.DB.prepare("SELECT COUNT(*) AS count FROM members WHERE plan_id = ?").bind(id).first();
   const color = MEMBER_COLORS[count % MEMBER_COLORS.length];
   const memberId = newId("mem");
 
-  await c.env.DB.prepare("INSERT INTO members (id, plan_id, name, color) VALUES (?, ?, ?, ?)")
-    .bind(memberId, id, name.trim(), color)
+  await c.env.DB.prepare("INSERT INTO members (id, plan_id, name, color, user_id) VALUES (?, ?, ?, ?, ?)")
+    .bind(memberId, id, finalName, color, sessionUser?.id ?? null)
     .run();
 
   c.executionCtx.waitUntil(notifyRoom(c.env, id, "member.joined"));

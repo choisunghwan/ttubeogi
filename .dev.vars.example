@@ -4,3 +4,10 @@
 # 카카오 개발자 콘솔 > 앱 > 제품 설정 > 카카오맵 > REST API 키
 # 없어도 앱은 동작한다 — 국내 검색이 Nominatim으로 대체될 뿐.
 KAKAO_REST_API_KEY=
+
+# 카카오 로그인 세션 쿠키 서명용. 아무 랜덤 문자열이나 32바이트 이상 — 예: `openssl rand -hex 32`
+# 이게 없으면 로그인 기능 전체가 동작 안 함(게스트 참여는 여전히 가능).
+SESSION_SECRET=
+
+# 카카오 개발자 콘솔에서 "Client Secret" 활성화했을 때만 채우면 됨. 선택사항.
+KAKAO_CLIENT_SECRET=
