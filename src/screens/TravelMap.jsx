@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { C } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi, SittingTtubeogi, Footprint } from "../components/TtubeogiCharacter";
+import { MedalIcon, GlobeIcon, PlaneBadgeIcon } from "../components/Icons";
 import { level, fmtDate, sinceLabel, formatWhen } from "../utils";
 import { KOREA_MAINLAND_PATHS, KOREA_JEJU_PATH } from "../data/koreaMapPaths";
 import { listMyPlans } from "../lib/api";
@@ -96,7 +97,7 @@ export default function TravelMap() {
             <div style={s.legend}>
               <span style={s.legendItem}><Footprint size={13} opacity={0.55} color={C.orange} /> 1회</span>
               <span style={s.legendItem}><Footprint size={15} opacity={0.9} color={C.orangeDeep} /> 3회+</span>
-              <span style={s.legendItem}>🪑 5회+ 단골</span>
+              <span style={s.legendItem}><MedalIcon size={13} color={C.gold} /> 5회+ 단골</span>
             </div>
           </div>
 
@@ -115,10 +116,14 @@ export default function TravelMap() {
 
           {overseas.length > 0 && (
             <div style={{ ...s.detail, marginTop: 0 }}>
-              <div style={{ ...s.detailKey, marginBottom: 8 }}>🌍 해외 (지도 밖 지역이라 목록으로 모아둠)</div>
+              <div style={{ ...s.detailKey, marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
+                <GlobeIcon size={13} color={C.muted} /> 해외 (지도 밖 지역이라 목록으로 모아둠)
+              </div>
               {overseas.map((p) => (
                 <div key={p.id} style={s.detailRow}>
-                  <span>✈️ {p.title}{p.region ? ` · ${p.region}` : ""}</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                    <PlaneBadgeIcon size={12} color={C.orangeDeep} /> {p.title}{p.region ? ` · ${p.region}` : ""}
+                  </span>
                   <span style={{ color: C.muted }}>{fmtDate(p.endDate)}</span>
                 </div>
               ))}
@@ -130,7 +135,9 @@ export default function TravelMap() {
       {upcoming && (
         <div style={{ ...s.upcoming, marginTop: 14 }} onClick={() => navigate(`/p/${upcoming.id}`)}>
           <div>
-            <div style={s.upLabel}>✈️ 다가오는 일정</div>
+            <div style={{ ...s.upLabel, display: "flex", alignItems: "center", gap: 5 }}>
+              <PlaneBadgeIcon size={12} color="currentColor" /> 다가오는 일정
+            </div>
             <div style={s.upName}>{upcoming.title} · {formatWhen(upcoming.startDate, upcoming.endDate).when}</div>
           </div>
           <div style={s.upGo}>동선 보기 ▶</div>

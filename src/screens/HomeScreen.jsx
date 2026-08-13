@@ -4,6 +4,7 @@ import { C } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import KindIcon from "../components/KindIcon";
+import { PersonIcon, CalendarIcon, SuitcaseIcon, KakaoDotIcon } from "../components/Icons";
 import { listMyPlans } from "../lib/api";
 import { getKnownPlanIds } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
@@ -85,7 +86,7 @@ export default function HomeScreen() {
           </h1>
         </div>
         <div style={s.profileDot} title="마이페이지" onClick={() => navigate("/me")}>
-          {me ? me.nickname[0] : "👤"}
+          {me ? me.nickname[0] : <PersonIcon size={16} color="#fff" />}
         </div>
       </div>
 
@@ -97,8 +98,8 @@ export default function HomeScreen() {
       </div>
 
       {me === null && (
-        <a href={KAKAO_LOGIN_URL} style={s.formHint}>
-          🟡 카카오로 로그인하면 기기를 바꿔도 내 일정이 계속 보여요 →
+        <a href={KAKAO_LOGIN_URL} style={{ ...s.formHint, display: "inline-flex", alignItems: "center", gap: 5 }}>
+          <KakaoDotIcon size={13} /> 카카오로 로그인하면 기기를 바꿔도 내 일정이 계속 보여요 →
         </a>
       )}
 
@@ -113,14 +114,18 @@ export default function HomeScreen() {
 
       {upcoming.length > 0 && (
         <>
-          <div style={s.sectionLabel}>📅 다가오는 일정</div>
+          <div style={s.sectionLabel}>
+            <CalendarIcon size={13} color="#6f6656" /> 다가오는 일정
+          </div>
           {upcoming.map((p, i) => <PlanCard key={p.id} p={p} hot={i === 0} />)}
         </>
       )}
 
       {past.length > 0 && (
         <>
-          <div style={{ ...s.sectionLabel, marginTop: 22 }}>🧳 지난 일정</div>
+          <div style={{ ...s.sectionLabel, marginTop: 22 }}>
+            <SuitcaseIcon size={13} color="#6f6656" /> 지난 일정
+          </div>
           {past.map((p) => <PlanCard key={p.id} p={p} />)}
         </>
       )}

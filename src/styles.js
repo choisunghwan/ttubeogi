@@ -111,7 +111,8 @@ export const s = {
                 display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800,
                 cursor: "pointer", flexShrink: 0 },
   homeGreeting: { fontSize: 21, fontWeight: 800, lineHeight: 1.35, marginBottom: 22 },
-  sectionLabel: { fontSize: 13, fontWeight: 800, color: "#6f6656", marginBottom: 10, letterSpacing: -0.2 },
+  sectionLabel: { display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 800,
+                  color: "#6f6656", marginBottom: 10, letterSpacing: -0.2 },
   // 홈 카드 — 진짜 보딩패스(항공권) 티켓처럼: 본문 + 절취선(펀치 노치) + 스텁으로 구성.
   // 노치(반원 구멍)는 카드 배경색 대신 페이지 배경색(C.paper)의 작은 원을 절취선 위치에 얹어서
   // "뚫린 것처럼" 보이게 하는 방식 — 실제 CSS clip-path 없이도 가벼움.

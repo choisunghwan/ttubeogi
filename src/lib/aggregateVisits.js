@@ -15,12 +15,26 @@ export function aggregateVisits(plans) {
       continue;
     }
     if (!byRegionId.has(matched.id)) {
-      byRegionId.set(matched.id, { ...matched, visits: 0, lastVisit: null, planTitles: [] });
+      byRegionId.set(matched.id, { ...matched, visits: 0, lastVisit: null, planTitles: [], specificCities: new Set() });
     }
     const entry = byRegionId.get(matched.id);
     entry.visits += 1;
     entry.planTitles.push(plan.title);
     if (!entry.lastVisit || plan.endDate > entry.lastVisit) entry.lastVisit = plan.endDate;
+    // "경북" 같은 광역 표현으로만 매칭됐으면 구체적인 도시를 모르는 거라 후보에서 뺀다 —
+    // "포항" 여행이 "안동"(도 대표 지점)으로 잘못 찍혀 보이던 문제의 원인이었음.
+    if (!matched.genericKeywords.includes(matched.matchedKeyword)) {
+      entry.specificCities.add(matched.matchedKeyword);
+    }
+  }
+
+  // 이 지역에서 매칭된 구체적인 도시가 정확히 하나뿐이면 그 도시 이름을 그대로 쓰고("포항"),
+  // 도시가 여러 개 섞였거나 하나도 특정 못 했으면 도 이름으로 보여준다("경북").
+  for (const entry of byRegionId.values()) {
+    if (entry.specificCities.size === 1) {
+      entry.name = [...entry.specificCities][0];
+    }
+    delete entry.specificCities;
   }
 
   // 안정적인 순서(지도 위 위치 순서)로 반환.

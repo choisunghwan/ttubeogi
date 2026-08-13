@@ -38,3 +38,52 @@ export function PlaneBadgeIcon({ size = 14, color = "currentColor" }) {
     </svg>
   );
 }
+
+export function PersonIcon({ size = 16, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="7.5" r="3.8" fill={color} />
+      <path d="M4 20.5c0-4.2 3.6-7 8-7s8 2.8 8 7" stroke={color} strokeWidth="2.1" strokeLinecap="round" fill="none" />
+    </svg>
+  );
+}
+
+export function SuitcaseIcon({ size = 15, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <rect x="3" y="8" width="18" height="12.5" rx="2.4" stroke={color} strokeWidth="1.7" />
+      <path d="M8.5 8V5.5a1.5 1.5 0 011.5-1.5h4a1.5 1.5 0 011.5 1.5V8" stroke={color} strokeWidth="1.7" strokeLinejoin="round" />
+      <path d="M3 13.5h18" stroke={color} strokeWidth="1.7" />
+      <path d="M10.5 13.5v1.6M13.5 13.5v1.6" stroke={color} strokeWidth="1.9" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function GlobeIcon({ size = 15, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.6" />
+      <ellipse cx="12" cy="12" rx="4" ry="9" stroke={color} strokeWidth="1.6" />
+      <path d="M3 12h18M4.5 7h15M4.5 17h15" stroke={color} strokeWidth="1.4" />
+    </svg>
+  );
+}
+
+export function MedalIcon({ size = 14, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="14" r="6.5" fill={color} opacity="0.16" stroke={color} strokeWidth="1.6" />
+      <path d="M10 3.5l2 3.7 2-3.7" stroke={color} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 10.5l1.4 2.9 3.1.4-2.3 2.2.6 3.1L12 17.6l-2.8 1.5.6-3.1-2.3-2.2 3.1-.4z" fill={color} />
+    </svg>
+  );
+}
+
+export function KakaoDotIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#FEE500" />
+      <path d="M12 6.5c-3.6 0-6.5 2.3-6.5 5.1 0 1.8 1.2 3.4 3 4.3l-.7 2.6a.4.4 0 00.6.4l2.9-2c.2 0 .5 0 .7 0 3.6 0 6.5-2.3 6.5-5.1S15.6 6.5 12 6.5z" fill="#391B1B" />
+    </svg>
+  );
+}
