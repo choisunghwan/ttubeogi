@@ -18,8 +18,10 @@ export function createPlan({ kind, title, startDate, endDate, region, creatorNam
   });
 }
 
+// ids가 비어 있어도(=이 브라우저가 아는 일정이 하나도 없어도) 서버는 계속 호출한다 —
+// 로그인 상태면 서버가 세션으로 계정 소유 일정을 찾아서 합쳐주기 때문에, 새 기기/브라우저에서
+// 로그인만 했을 때도 내 일정이 보여야 한다(로컬 캐시가 텅 비어 있다고 조회 자체를 건너뛰면 안 됨).
 export function listMyPlans(ids) {
-  if (ids.length === 0) return Promise.resolve([]);
   return request(`/api/plans?ids=${encodeURIComponent(ids.join(","))}`);
 }
 
