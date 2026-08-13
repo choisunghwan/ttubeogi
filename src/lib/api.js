@@ -29,6 +29,14 @@ export function getPlan(planId) {
   return request(`/api/plans/${planId}`);
 }
 
+export function updatePlan(planId, patch) {
+  return request(`/api/plans/${planId}`, { method: "PATCH", body: JSON.stringify(patch) });
+}
+
+export function deletePlan(planId) {
+  return request(`/api/plans/${planId}`, { method: "DELETE" });
+}
+
 export function joinPlan(planId, name) {
   return request(`/api/plans/${planId}/members`, {
     method: "POST",

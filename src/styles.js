@@ -1,15 +1,28 @@
 // 데모(ttubeogi.jsx)의 거대한 style 객체 그대로. 간격·색·카드 스타일의 단일 출처.
 import { C } from "./theme";
 
-export const keyframes = `@keyframes pulse { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }`;
+// box-sizing 리셋: width/maxWidth가 있는 요소에 padding·border를 더한 값이 실제 렌더 폭이 되면
+// (기본값 content-box) 좁은 화면에서 하나둘씩 화면 밖으로 삐져나간다. 요소마다 개별로 boxSizing을
+// 챙기는 대신 전역으로 한 번에 막는다 — 부트스트랩/Tailwind 등도 다 이렇게 함.
+export const keyframes = `
+*, *::before, *::after { box-sizing: border-box; }
+@keyframes pulse { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+`;
 
 export const s = {
   app: {
     maxWidth: 440, margin: "0 auto", minHeight: "100vh", background: C.paper,
     fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif",
     color: C.ink, display: "flex", flexDirection: "column", position: "relative",
+    // Safari에서 안쪽 어딘가의 텍스트/네이티브 컨트롤이 줄바꿈 없이 폭을 넓게 잡아버리는 경우가
+    // 종종 있어서(각 요소마다 원인 다 잡기 번거로움), 앱 최상단에서 가로로는 절대 못 새어나가게
+    // 마지막 안전장치를 걸어둔다 — 세로 스크롤엔 영향 없음.
+    overflowX: "hidden",
   },
-  screen: { flex: 1, paddingBottom: 70 },
+  // minWidth:0 필수 — app이 flex column이라 이 자식(flex:1)의 기본 min-width는 "auto"인데,
+  // Safari는 그걸 내부 콘텐츠의 최소 폭(줄바꿈 안 됐을 때 폭)까지 고려해서 화면보다 넓게 잡아버린다.
+  // 이거 하나 없어서 페이지 전체가 가로로 삐져나오는 게 이번에 발견한 버그의 진짜 원인이었음.
+  screen: { flex: 1, minWidth: 0, paddingBottom: 70 },
   pad: { padding: "18px 16px 20px" },
   tabbar: {
     position: "sticky", bottom: 0, display: "flex", gap: 6, padding: "8px 12px",
@@ -122,7 +135,9 @@ export const s = {
   // "탭하면 사이즈가 깨진다"는 증상으로 보인다 — 16 유지 필수.
   formInput: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #e2dac6",
                fontSize: 16, fontFamily: "inherit", background: "#fff", color: C.ink, boxSizing: "border-box" },
-  formRow: { display: "flex", gap: 10 },
+  // flexWrap: 네이티브 date/select 컨트롤은 CSS로 강제로 줄여도 실제 렌더링 폭이 그대로인 경우가 있어서
+  // (특히 Safari) 안 들어가면 옆으로 삐져나오는 대신 줄바꿈되게 해서 화면 밖으로 안 나가게 방어.
+  formRow: { display: "flex", gap: 10, flexWrap: "wrap" },
   formHint: { fontSize: 12, color: C.muted, marginTop: 6 },
   formError: { fontSize: 13, color: "#c0392b", marginTop: 10, fontWeight: 600 },
   pickerGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
@@ -136,8 +151,12 @@ export const s = {
   // 참여 게이트
   joinWrap: { minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center",
               alignItems: "center", padding: 24, background: C.paper },
-  joinCard: { width: "100%", maxWidth: 360, background: "#fff", borderRadius: 18, padding: "28px 24px",
-              border: "1px solid #efe9dc", boxShadow: "0 8px 24px rgba(0,0,0,.08)", textAlign: "center" },
+  // boxSizing 필수 — width/maxWidth에 padding+border가 더해지지 않게. 이게 빠져있어서
+  // joinWrap(가운데 정렬+여유 패딩) 밖에서 이 카드를 쓰면(마이페이지 등) 실제 렌더 폭이
+  // maxWidth보다 padding+border만큼 더 넓어져서 화면 밖으로 삐져나갔었다.
+  joinCard: { width: "100%", maxWidth: 360, boxSizing: "border-box", background: "#fff", borderRadius: 18,
+              padding: "28px 24px", border: "1px solid #efe9dc", boxShadow: "0 8px 24px rgba(0,0,0,.08)",
+              textAlign: "center" },
 
   // 빈 상태
   emptyState: { textAlign: "center", padding: "40px 16px", color: C.muted, fontSize: 14 },

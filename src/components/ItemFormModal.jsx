@@ -118,11 +118,11 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
                     onClick={() => setTime(to24("오후", parsed.hour12, parsed.minute))}>오후</button>
                 </div>
                 <div style={{ ...s.formRow, marginTop: 8 }}>
-                  <select style={{ ...s.formInput, flex: 1, minWidth: 0 }} value={parsed.hour12}
+                  <select style={{ ...s.formInput, flex: 1, minWidth: 110 }} value={parsed.hour12}
                     onChange={(e) => setTime(to24(parsed.ampm, e.target.value, parsed.minute))}>
                     {HOURS_12.map((h) => <option key={h} value={h}>{h}시</option>)}
                   </select>
-                  <select style={{ ...s.formInput, flex: 1, minWidth: 0 }} value={parsed.minute}
+                  <select style={{ ...s.formInput, flex: 1, minWidth: 110 }} value={parsed.minute}
                     onChange={(e) => setTime(to24(parsed.ampm, parsed.hour12, e.target.value))}>
                     {MINUTES.map((m) => <option key={m} value={m}>{m}분</option>)}
                   </select>

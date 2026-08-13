@@ -4,6 +4,7 @@ import { C } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi, SittingTtubeogi, Footprint } from "../components/TtubeogiCharacter";
 import { level, fmtDate, sinceLabel, formatWhen } from "../utils";
+import { KOREA_MAINLAND_PATHS, KOREA_JEJU_PATH } from "../data/koreaMapPaths";
 import { listMyPlans } from "../lib/api";
 import { getKnownPlanIds } from "../lib/localPlans";
 import { aggregateVisits } from "../lib/aggregateVisits";
@@ -64,9 +65,12 @@ export default function TravelMap() {
 
           <div style={s.mapFrame}>
             <svg viewBox="0 0 100 110" style={s.mapSvg}>
-              <path d="M 40 6 Q 30 10 32 20 Q 24 24 26 32 Q 20 40 28 46 Q 26 56 34 60 Q 30 68 38 72 Q 40 78 48 76 Q 56 82 60 74 Q 70 70 66 60 Q 74 54 68 46 Q 76 40 70 32 Q 74 22 64 20 Q 62 8 52 8 Q 46 4 40 6 Z"
-                    fill={C.land} stroke={C.landStroke} strokeWidth="0.8" />
-              <ellipse cx="34" cy="90" rx="9" ry="5" fill={C.land} stroke={C.landStroke} strokeWidth="0.8" />
+              {/* 실제 대한민국 시/도 경계 데이터 기반 윤곽(src/data/koreaMapPaths.js). 도 경계선이
+                  옅게 보이지만 전부 같은 색으로 채워서 하나의 국토처럼 보이게 함. */}
+              {KOREA_MAINLAND_PATHS.map((d, i) => (
+                <path key={i} d={d} fill={C.land} stroke={C.landStroke} strokeWidth="0.3" />
+              ))}
+              <path d={KOREA_JEJU_PATH} fill={C.land} stroke={C.landStroke} strokeWidth="0.3" />
               {domestic.map((r) => {
                 const lv = level(r.visits), isSel = sel?.id === r.id;
                 const fpSize = lv === 1 ? 15 : 20, fpOp = lv === 1 ? 0.55 : 0.9;
@@ -113,10 +117,10 @@ export default function TravelMap() {
 
           {overseas.length > 0 && (
             <div style={{ ...s.detail, marginTop: 0 }}>
-              <div style={{ ...s.detailKey, marginBottom: 8 }}>🌍 해외</div>
+              <div style={{ ...s.detailKey, marginBottom: 8 }}>🌍 해외 (지도 밖 지역이라 목록으로 모아둠)</div>
               {overseas.map((p) => (
                 <div key={p.id} style={s.detailRow}>
-                  <span>{p.title}</span>
+                  <span>✈️ {p.title}{p.region ? ` · ${p.region}` : ""}</span>
                   <span style={{ color: C.muted }}>{fmtDate(p.endDate)}</span>
                 </div>
               ))}

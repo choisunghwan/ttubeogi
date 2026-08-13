@@ -81,11 +81,6 @@ export default function HomeScreen() {
           🟡 카카오로 로그인하면 기기를 바꿔도 내 일정이 계속 보여요 →
         </a>
       )}
-      {me && (
-        <div style={{ ...s.formHint, cursor: "pointer" }} onClick={() => navigate("/me")}>
-          {me.nickname}님으로 로그인됨 · 마이페이지에서 닉네임 바꾸기 →
-        </div>
-      )}
 
       {plans === null && !error && <div style={s.emptyState}>불러오는 중…</div>}
       {error && <div style={s.emptyState}>목록을 불러오지 못했어요: {error}</div>}

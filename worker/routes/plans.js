@@ -189,6 +189,50 @@ app.get("/:id", async (c) => {
   });
 });
 
+// PATCH /api/plans/:id — 일정 자체(제목/종류/기간/지역) 수정.
+// 링크를 아는 사람 누구나 고칠 수 있다 — 항목 CRUD랑 같은 권한 모델(별도 소유자 개념 없음).
+const PLAN_PATCHABLE_FIELDS = { kind: "kind", title: "title", startDate: "start_date", endDate: "end_date", region: "region" };
+app.patch("/:id", async (c) => {
+  const id = c.req.param("id");
+  const plan = await c.env.DB.prepare("SELECT id FROM plans WHERE id = ?").bind(id).first();
+  if (!plan) return c.json({ error: "일정을 찾을 수 없습니다" }, 404);
+
+  const body = await c.req.json().catch(() => ({}));
+  if (body.kind && !KINDS.has(body.kind)) return c.json({ error: "kind는 여행/데이트/약속 중 하나여야 합니다" }, 400);
+  if ("title" in body && !body.title?.trim()) return c.json({ error: "title은 비울 수 없습니다" }, 400);
+
+  const sets = [];
+  const values = [];
+  for (const [key, column] of Object.entries(PLAN_PATCHABLE_FIELDS)) {
+    if (key in body) {
+      sets.push(`${column} = ?`);
+      values.push(key === "title" ? body[key].trim() : body[key]);
+    }
+  }
+  if (sets.length === 0) return c.json({ error: "수정할 필드가 없습니다" }, 400);
+
+  values.push(id);
+  await c.env.DB.prepare(`UPDATE plans SET ${sets.join(", ")} WHERE id = ?`).bind(...values).run();
+  c.executionCtx.waitUntil(notifyRoom(c.env, id, "plan.updated"));
+  const updated = await c.env.DB.prepare("SELECT * FROM plans WHERE id = ?").bind(id).first();
+  return c.json({
+    id: updated.id, kind: updated.kind, title: updated.title,
+    startDate: updated.start_date, endDate: updated.end_date, region: updated.region,
+    status: computeStatus(updated.end_date),
+  });
+});
+
+// DELETE /api/plans/:id — 일정 전체 삭제 (멤버/날짜/항목 다 같이 지워짐, FK ON DELETE CASCADE).
+app.delete("/:id", async (c) => {
+  const id = c.req.param("id");
+  const plan = await c.env.DB.prepare("SELECT id FROM plans WHERE id = ?").bind(id).first();
+  if (!plan) return c.json({ error: "일정을 찾을 수 없습니다" }, 404);
+
+  c.executionCtx.waitUntil(notifyRoom(c.env, id, "plan.deleted"));
+  await c.env.DB.prepare("DELETE FROM plans WHERE id = ?").bind(id).run();
+  return c.json({ ok: true });
+});
+
 // POST /api/plans/:id/members — 이름만으로 참여
 app.post("/:id/members", async (c) => {
   const id = c.req.param("id");

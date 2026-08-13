@@ -53,8 +53,8 @@ export default function MyPageScreen() {
           <div style={{ margin: "12px 0 16px", color: C.muted, fontSize: 14, lineHeight: 1.5 }}>
             로그인하면 닉네임을 직접 정할 수 있고,<br />기기를 바꿔도 내 일정이 계속 보여요.
           </div>
-          <a href={KAKAO_LOGIN_URL}>
-            <button style={s.submitBtn}>🟡 카카오로 로그인</button>
+          <a href={KAKAO_LOGIN_URL} style={{ display: "block", width: "100%" }}>
+            <button style={{ ...s.submitBtn, width: "100%", boxSizing: "border-box" }}>🟡 카카오로 로그인</button>
           </a>
         </div>
       )}

@@ -31,7 +31,7 @@ export default function App() {
   return (
     <div style={s.app}>
       <style>{keyframes}</style>
-      <div style={showTabBar ? s.screen : { flex: 1 }}>
+      <div style={showTabBar ? s.screen : { flex: 1, minWidth: 0 }}>
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/map" element={<TravelMap />} />

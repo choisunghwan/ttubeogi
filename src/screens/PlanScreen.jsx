@@ -6,6 +6,7 @@ import { C } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import ItemFormModal from "../components/ItemFormModal";
+import EditPlanModal from "../components/EditPlanModal";
 import PlanMap from "../components/PlanMap";
 import ItemRow from "../components/ItemRow";
 import { getPlan, joinPlan, deleteItem, reorderItems } from "../lib/api";
@@ -89,6 +90,7 @@ export default function PlanScreen() {
   const [modalState, setModalState] = useState(null); // { item? } | null — dayId는 selectedDayId 사용
   const [copied, setCopied] = useState(false);
   const [viewTab, setViewTab] = useState("list"); // "list" | "map"
+  const [editingPlan, setEditingPlan] = useState(false);
 
   function reload() {
     getPlan(planId)
@@ -174,7 +176,10 @@ export default function PlanScreen() {
 
   return (
     <div style={s.pad}>
-      <button style={s.backBtn} onClick={() => navigate("/")}>◀ 홈</button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <button style={s.backBtn} onClick={() => navigate("/")}>◀ 홈</button>
+        <button style={s.itemRowActionBtn} title="일정 수정·삭제" onClick={() => setEditingPlan(true)}>✎</button>
+      </div>
 
       <div style={s.tripHead}>
         <div>
@@ -254,6 +259,16 @@ export default function PlanScreen() {
           memberId={memberId}
           onClose={() => setModalState(null)}
           onSaved={() => { setModalState(null); reload(); }}
+        />
+      )}
+
+      {editingPlan && (
+        <EditPlanModal
+          planId={planId}
+          plan={plan}
+          onClose={() => setEditingPlan(false)}
+          onSaved={() => { setEditingPlan(false); reload(); }}
+          onDeleted={() => navigate("/")}
         />
       )}
     </div>
