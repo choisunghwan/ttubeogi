@@ -83,12 +83,10 @@ export default function TravelMap() {
                         ? <div style={{ transform: "translate(-9px,-16px)" }}><SittingTtubeogi size={30} /></div>
                         : <div style={{ transform: `translate(${-fpSize / 2 + 8}px,${-fpSize / 2 + 8}px)` }}><Footprint size={fpSize} opacity={fpOp} color={fpColor} /></div>}
                     </foreignObject>
-                    {r.visits >= 2 && (
-                      <g transform="translate(5, -6)">
-                        <circle r="3.4" fill="#fff" stroke={fpColor} strokeWidth="0.8" />
-                        <text textAnchor="middle" y="1.3" fontSize="4" fontWeight="700" fill={fpColor}>{r.visits}</text>
-                      </g>
-                    )}
+                    <g transform="translate(5, -6)">
+                      <circle r="3.4" fill="#fff" stroke={fpColor} strokeWidth="0.8" />
+                      <text textAnchor="middle" y="1.3" fontSize="4" fontWeight="700" fill={fpColor}>{r.visits}</text>
+                    </g>
                     <text textAnchor="middle" y={lv === 3 ? 14 : 12} fontSize="3.6"
                           fontWeight={isSel ? 800 : 600} fill={isSel ? C.orangeDeep : C.ink}>{r.name}</text>
                   </g>

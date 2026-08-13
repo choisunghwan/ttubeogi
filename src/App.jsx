@@ -29,9 +29,9 @@ export default function App() {
   const showTabBar = location.pathname === "/" || location.pathname === "/map";
 
   return (
-    <div style={s.app}>
+    <div className="app-shell" style={s.app}>
       <style>{keyframes}</style>
-      <div style={showTabBar ? s.screen : { flex: 1, minWidth: 0 }}>
+      <div style={s.screen}>
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/map" element={<TravelMap />} />

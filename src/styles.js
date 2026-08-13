@@ -4,14 +4,19 @@ import { C } from "./theme";
 // box-sizing 리셋: width/maxWidth가 있는 요소에 padding·border를 더한 값이 실제 렌더 폭이 되면
 // (기본값 content-box) 좁은 화면에서 하나둘씩 화면 밖으로 삐져나간다. 요소마다 개별로 boxSizing을
 // 챙기는 대신 전역으로 한 번에 막는다 — 부트스트랩/Tailwind 등도 다 이렇게 함.
+// dvh를 쓸 수 있으면 모바일 브라우저 주소창 높이 변화에 맞춰 실제 뷰포트 높이를 쓰고(100vh는 Safari에서
+// 주소창이 보일 때 스크롤이 생기는 문제가 있음), 없으면 100vh로 폴백 — 인라인 style로는 fallback을
+// 못 쓰니 이 클래스만 따로 <style> 태그로 주입.
 export const keyframes = `
 *, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
 @keyframes pulse { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+.app-shell { height: 100vh; height: 100dvh; }
 `;
 
 export const s = {
   app: {
-    maxWidth: 440, margin: "0 auto", minHeight: "100vh", background: C.paper,
+    maxWidth: 440, margin: "0 auto", background: C.paper,
     fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif",
     color: C.ink, display: "flex", flexDirection: "column", position: "relative",
     // Safari에서 안쪽 어딘가의 텍스트/네이티브 컨트롤이 줄바꿈 없이 폭을 넓게 잡아버리는 경우가
@@ -19,13 +24,18 @@ export const s = {
     // 마지막 안전장치를 걸어둔다 — 세로 스크롤엔 영향 없음.
     overflowX: "hidden",
   },
-  // minWidth:0 필수 — app이 flex column이라 이 자식(flex:1)의 기본 min-width는 "auto"인데,
-  // Safari는 그걸 내부 콘텐츠의 최소 폭(줄바꿈 안 됐을 때 폭)까지 고려해서 화면보다 넓게 잡아버린다.
-  // 이거 하나 없어서 페이지 전체가 가로로 삐져나오는 게 이번에 발견한 버그의 진짜 원인이었음.
-  screen: { flex: 1, minWidth: 0, paddingBottom: 70 },
+  // app을 뷰포트 높이로 고정하고, 이 안에서만 스크롤되게 함 — 하단 탭바를 이 스크롤 영역 "밖"의
+  // 평범한 flex 형제로 두면(fixed/sticky 트릭 없이) 탭바가 절대 콘텐츠와 안 겹치고, 짧은 화면에서도
+  // padding 값을 억지로 맞출 필요가 없어짐(구조적으로 겹칠 수가 없는 배치).
+  // minWidth:0 필수 — Safari는 flex 자식의 기본 min-width를 내부 콘텐츠의 줄바꿈 안 된 최소 폭까지
+  // 고려해서 화면보다 넓게 잡아버린다. 이게 없어서 페이지 전체가 가로로 삐져나오는 버그가 있었음.
+  screen: {
+    flex: 1, minWidth: 0, minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch",
+  },
   pad: { padding: "18px 16px 20px" },
   tabbar: {
-    position: "sticky", bottom: 0, display: "flex", gap: 6, padding: "8px 12px",
+    flexShrink: 0, display: "flex", gap: 6, padding: "8px 12px",
+    paddingBottom: "max(8px, env(safe-area-inset-bottom))",
     background: "rgba(250,248,243,.95)", backdropFilter: "blur(8px)", borderTop: "1px solid #eae3d4",
   },
   tabBtn: {
