@@ -33,6 +33,85 @@ function walkerIconHtml({ step, facing, walking, size = 40 }) {
   </svg>`;
 }
 
+// 자차/택시 — 바퀴가 살짝 통통 튀는 정도만 표현(걷기처럼 다리 애니메이션은 필요 없음).
+function carIconHtml({ step, facing, size = 40 }) {
+  const bob = step % 2 === 0 ? -1 : 0;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 40 40" style="overflow:visible;transform:scaleX(${facing});filter:drop-shadow(0 3px 3px rgba(0,0,0,.2));">
+    <ellipse cx="20" cy="30" rx="11" ry="2.2" fill="rgba(0,0,0,.13)" />
+    <g transform="translate(0, ${bob})">
+      <rect x="7" y="16" width="26" height="10" rx="4" fill="${C.orange}" />
+      <path d="M 12 16 L 15 10 L 27 10 L 30 16 Z" fill="${C.cream}" stroke="${C.creamShade}" stroke-width="0.8" />
+      <rect x="17" y="11.5" width="2" height="3.5" fill="${C.creamShade}" opacity="0.6" />
+      <circle cx="13" cy="27" r="3.2" fill="${C.ink}" /><circle cx="13" cy="27" r="1.2" fill="${C.muted}" />
+      <circle cx="27" cy="27" r="3.2" fill="${C.ink}" /><circle cx="27" cy="27" r="1.2" fill="${C.muted}" />
+      <circle cx="30" cy="19" r="1.3" fill="#fff" opacity="0.85" />
+    </g>
+  </svg>`;
+}
+
+// 버스 — 자차보다 크고 각진 차체 + 창문 여러 개.
+function busIconHtml({ step, facing, size = 40 }) {
+  const bob = step % 2 === 0 ? -1 : 0;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 40 40" style="overflow:visible;transform:scaleX(${facing});filter:drop-shadow(0 3px 3px rgba(0,0,0,.2));">
+    <ellipse cx="20" cy="31" rx="12" ry="2.2" fill="rgba(0,0,0,.13)" />
+    <g transform="translate(0, ${bob})">
+      <rect x="6" y="9" width="28" height="18" rx="4" fill="${C.member2}" />
+      <rect x="9" y="12.5" width="5" height="5" rx="1" fill="${C.cream}" />
+      <rect x="15.5" y="12.5" width="5" height="5" rx="1" fill="${C.cream}" />
+      <rect x="22" y="12.5" width="5" height="5" rx="1" fill="${C.cream}" />
+      <rect x="6" y="21" width="28" height="3" fill="rgba(255,255,255,.35)" />
+      <circle cx="13" cy="28" r="3" fill="${C.ink}" /><circle cx="13" cy="28" r="1.1" fill="${C.muted}" />
+      <circle cx="27" cy="28" r="3" fill="${C.ink}" /><circle cx="27" cy="28" r="1.1" fill="${C.muted}" />
+    </g>
+  </svg>`;
+}
+
+// 지하철/트램 — 바퀴 없이 레일 위를 미끄러지듯 이동, 창문 줄이 특징.
+function trainIconHtml({ step, facing, size = 40 }) {
+  const slide = step % 2 === 0 ? 0 : 0.6;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 40 40" style="overflow:visible;transform:scaleX(${facing});filter:drop-shadow(0 3px 3px rgba(0,0,0,.2));">
+    <ellipse cx="20" cy="30" rx="12" ry="2.2" fill="rgba(0,0,0,.13)" />
+    <g transform="translate(${slide}, 0)">
+      <rect x="6" y="10" width="28" height="17" rx="6" fill="${C.member3}" />
+      <rect x="9" y="14" width="4.5" height="5" rx="1" fill="${C.cream}" />
+      <rect x="15" y="14" width="4.5" height="5" rx="1" fill="${C.cream}" />
+      <rect x="21" y="14" width="4.5" height="5" rx="1" fill="${C.cream}" />
+      <rect x="27" y="14" width="4.5" height="5" rx="1" fill="${C.cream}" />
+      <rect x="9" y="24" width="22" height="2" fill="rgba(255,255,255,.3)" />
+    </g>
+  </svg>`;
+}
+
+// 항공 — 도로/레일 없이 하늘을 가로지르는 느낌으로 그림자 없이, 살짝 위아래로 흔들리게.
+function planeIconHtml({ step, facing, size = 40 }) {
+  const bob = step % 2 === 0 ? -1.5 : 1.5;
+  return `<svg width="${size}" height="${size}" viewBox="0 0 40 40" style="overflow:visible;transform:scaleX(${facing});filter:drop-shadow(0 4px 4px rgba(0,0,0,.15));">
+    <g transform="translate(0, ${bob}) rotate(-8 20 20)">
+      <path d="M 6 21 L 30 19 L 34 21 L 30 23 L 6 23 Z" fill="${TYPES.항공.color}" />
+      <path d="M 16 20 L 10 12 L 14 12 L 21 20 Z" fill="${TYPES.항공.color}" opacity="0.85" />
+      <path d="M 16 22 L 10 30 L 14 30 L 21 22 Z" fill="${TYPES.항공.color}" opacity="0.85" />
+      <path d="M 28 20 L 33 17.5 L 33 20 Z" fill="${TYPES.항공.color}" opacity="0.7" />
+      <circle cx="27" cy="21" r="1.3" fill="#fff" opacity="0.8" />
+    </g>
+  </svg>`;
+}
+
+// 이동수단별 속도(프레임당 전진하는 경로점 개수)와 아이콘. 도보 기준(3)에서 빠른 교통수단일수록
+// 배수로 빠르게 — "비행기인데 걷는 속도로 가면 이상하다"는 피드백으로 추가.
+const MOVE_STYLE = {
+  도보: { stepPerFrame: 3, icon: walkerIconHtml, drawShadow: true },
+  지하철: { stepPerFrame: 9, icon: trainIconHtml },
+  트램: { stepPerFrame: 7, icon: trainIconHtml },
+  버스: { stepPerFrame: 7, icon: busIconHtml },
+  택시: { stepPerFrame: 10, icon: carIconHtml },
+  자차: { stepPerFrame: 10, icon: carIconHtml },
+  항공: { stepPerFrame: 26, icon: planeIconHtml },
+  기타: { stepPerFrame: 3, icon: walkerIconHtml },
+};
+function moveStyleFor(move) {
+  return MOVE_STYLE[move] || MOVE_STYLE.기타;
+}
+
 function pinIconHtml(number, color, active) {
   const d = active ? 30 : 24;
   return `<div style="width:${d}px;height:${d}px;border-radius:50%;background:${color};border:2px solid #fff;
@@ -51,10 +130,13 @@ function interpolateStraight(a, b, seg, stepsPerSeg = 48) {
 }
 
 // 항목들 사이를 실제 도로를 따라 잇는다. OSRM이 응답을 못 주는 구간만 직선으로 대체(완전히 끊기지 않게).
+// 비행기 구간은 애초에 도로를 따라갈 이유가 없어서(국내외 장거리는 OSRM 자동차 경로 자체가 무의미)
+// API를 부르지 않고 항상 직선으로 잇는다.
 async function buildRoadPath(points, moves) {
   const segments = await Promise.all(
     points.slice(0, -1).map(async (a, i) => {
       const b = points[i + 1];
+      if (moves[i + 1] === "항공") return interpolateStraight(a, b, i);
       const profile = moves[i + 1] === "도보" ? "foot" : "driving";
       const roadPoints = await fetchRoute(a, b, profile).catch(() => null);
       if (roadPoints?.length > 1) {
@@ -170,26 +252,31 @@ export default function PlanMap({ items, onGoToList }) {
     let i = 0;
     let prev = { lat: geocoded[curNow].lat, lng: geocoded[curNow].lng };
     // 프레임당 경로점 하나씩만 전진 + requestAnimationFrame을 setTimeout으로 한번 더 감싸던 이전 방식은
-    // 사실상 프레임을 두 번씩 걸러 뛰는 셈이라 체감 속도가 느렸다. rAF 하나로만 돌리고, 프레임당
-    // STEP_PER_FRAME개씩 전진시켜서 실제 걷는 속도가 나게 함(경로점 촘촘한 OSRM 응답 기준).
-    const STEP_PER_FRAME = 3;
+    // 사실상 프레임을 두 번씩 걸러 뛰는 셈이라 체감 속도가 느렸다. rAF 하나로만 돌리고, 이동수단별로
+    // 프레임당 전진하는 경로점 개수(속도)와 아이콘을 다르게 함(비행기는 빠르고 비행기 모양 등).
     const animate = () => {
       if (i >= seg.length) {
         walkerMarkerRef.current.setLatLng([geocoded[clamped].lat, geocoded[clamped].lng]);
+        walkerMarkerRef.current.setIcon(L.divIcon({
+          html: walkerIconHtml({ step: 0, facing: walkStateRef.current.facing, walking: false }),
+          className: "ttubeogi-div-icon", iconSize: [40, 40], iconAnchor: [20, 34],
+        }));
         setCurrent(clamped);
         setWalking(false);
         return;
       }
       const p = seg[i];
+      const move = geocoded[p.seg + 1]?.move;
+      const style = moveStyleFor(move);
       walkStateRef.current.facing = p.lng >= prev.lng ? 1 : -1;
       walkStateRef.current.step = (walkStateRef.current.step + 1) % 4;
       walkerMarkerRef.current.setLatLng([p.lat, p.lng]);
       walkerMarkerRef.current.setIcon(L.divIcon({
-        html: walkerIconHtml({ step: walkStateRef.current.step, facing: walkStateRef.current.facing, walking: true }),
+        html: style.icon({ step: walkStateRef.current.step, facing: walkStateRef.current.facing, walking: true }),
         className: "ttubeogi-div-icon", iconSize: [40, 40], iconAnchor: [20, 34],
       }));
       prev = p;
-      i += STEP_PER_FRAME;
+      i += style.stepPerFrame;
       rafRef.current = requestAnimationFrame(animate);
     };
     animate();
