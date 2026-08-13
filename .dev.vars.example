@@ -1,0 +1,6 @@
+# 로컬 개발용 시크릿. 이 파일을 복사해서 `.dev.vars`로 저장하면 wrangler/vite가 자동으로 읽는다.
+# .dev.vars는 .gitignore에 있어서 커밋되지 않는다 — 절대 실제 키를 이 예시 파일에 넣지 말 것.
+
+# 카카오 개발자 콘솔 > 앱 > 제품 설정 > 카카오맵 > REST API 키
+# 없어도 앱은 동작한다 — 국내 검색이 Nominatim으로 대체될 뿐.
+KAKAO_REST_API_KEY=
