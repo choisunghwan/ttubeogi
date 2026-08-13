@@ -172,6 +172,7 @@ export const s = {
   newHint: { textAlign: "center", fontSize: 12, color: C.muted, marginTop: 8 },
   backBtn: { border: "none", background: "transparent", color: C.muted, fontSize: 14, fontWeight: 700,
              cursor: "pointer", padding: "0 0 10px", marginLeft: -2 },
+  myPageDivider: { height: 1, background: C.goldLight, opacity: 0.5, margin: "28px 0 22px" },
 
   // 폼 공통 (일정 만들기 / 참여 게이트 / 항목 모달)
   formLabel: { fontSize: 13, fontWeight: 700, color: "#6f6656", marginBottom: 7, marginTop: 18 },
@@ -270,4 +271,33 @@ export const s = {
   // 첨부 이미지(항공권/바우처) 라이트박스
   attachmentLightbox: { position: "relative", maxWidth: "92vw", maxHeight: "88vh" },
   attachmentLightboxImg: { maxWidth: "92vw", maxHeight: "88vh", borderRadius: 10, display: "block" },
+
+  // 캘린더 화면 (예전 나의지도 탭 자리)
+  calHeadRow: { display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
+  calNavBtn: { width: 32, height: 32, borderRadius: "50%", border: `1px solid ${C.goldLight}`, background: "#fff",
+               color: C.goldDeep, fontSize: 18, fontWeight: 700, cursor: "pointer", lineHeight: "1",
+               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  calMonthLabel: { fontFamily: SERIF_KO, fontSize: 17, fontWeight: 700, color: C.ink },
+  calGrid: { display: "grid", gridTemplateColumns: "repeat(7, 1fr)", rowGap: 4, columnGap: 0,
+             background: "#fff", border: `1px solid ${C.goldLight}`, borderRadius: 16, padding: "12px 4px",
+             boxShadow: "0 3px 14px rgba(80,60,20,.06)" },
+  calWeekday: { fontSize: 11, fontWeight: 700, textAlign: "center", paddingBottom: 6 },
+  calCellWrap: { display: "flex", flexDirection: "column", alignItems: "center", minWidth: 0 },
+  calCell: { width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center",
+             justifyContent: "center", fontSize: 12.5, fontWeight: 600, color: C.ink },
+  calCellToday: { border: `1.3px solid ${C.gold}`, fontWeight: 800 },
+  calCellSelected: { background: C.gold, color: "#fff", fontWeight: 800 },
+  calDots: { display: "flex", gap: 2, marginTop: 2, height: 4 },
+  calDot: { width: 4, height: 4, borderRadius: "50%" },
+  calSelectedList: { marginTop: 14, background: "#fff", border: `1px solid #efe9dc`, borderRadius: 14,
+                      padding: "10px 12px", boxShadow: "0 2px 8px rgba(0,0,0,.04)" },
+  calSelectedLabel: { fontSize: 11.5, fontWeight: 700, color: C.muted, marginBottom: 6, letterSpacing: 0.2 },
+  calSelectedRow: { display: "flex", alignItems: "center", gap: 10, padding: "9px 2px", cursor: "pointer",
+                     borderTop: "1px solid #f2ede0" },
+  calSelectedTitle: { fontSize: 14, fontWeight: 700, color: C.ink, whiteSpace: "nowrap", overflow: "hidden",
+                       textOverflow: "ellipsis" },
+  calSelectedWhen: { fontSize: 11.5, color: C.muted, marginTop: 1 },
+  calExportBtn: { width: "100%", marginTop: 20, padding: "15px 0", borderRadius: 14, border: "none",
+                  background: C.gold, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
 };

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { C } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "../components/TtubeogiCharacter";
+import { KakaoDotIcon } from "../components/Icons";
+import TravelMapSection from "../components/TravelMapSection";
 import { getMe, logout, updateNickname, KAKAO_LOGIN_URL } from "../lib/auth";
 
 export default function MyPageScreen() {
@@ -54,7 +56,10 @@ export default function MyPageScreen() {
             로그인하면 닉네임을 직접 정할 수 있고,<br />기기를 바꿔도 내 일정이 계속 보여요.
           </div>
           <a href={KAKAO_LOGIN_URL} style={{ display: "block", width: "100%" }}>
-            <button style={{ ...s.submitBtn, width: "100%", boxSizing: "border-box" }}>🟡 카카오로 로그인</button>
+            <button style={{ ...s.submitBtn, width: "100%", boxSizing: "border-box",
+                             display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}>
+              <KakaoDotIcon size={16} /> 카카오로 로그인
+            </button>
           </a>
         </div>
       )}
@@ -65,7 +70,9 @@ export default function MyPageScreen() {
             <div style={{ ...s.profileDot, width: 52, height: 52, fontSize: 20 }}>{me.nickname[0]}</div>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800 }}>{me.nickname}</div>
-              <div style={{ fontSize: 12.5, color: C.muted }}>🟡 카카오 로그인됨</div>
+              <div style={{ fontSize: 12.5, color: C.muted, display: "flex", alignItems: "center", gap: 4 }}>
+                <KakaoDotIcon size={12} /> 카카오 로그인됨
+              </div>
             </div>
           </div>
 
@@ -91,6 +98,11 @@ export default function MyPageScreen() {
           </button>
         </>
       )}
+
+      {/* 나의 여행 지도 — 예전엔 하단 탭의 독립 화면이었는데 여기로 합쳤다. 로그인 여부와
+          무관하게(게스트도) 이 브라우저가 아는 일정 기준으로 항상 보임. */}
+      <div style={s.myPageDivider} />
+      <TravelMapSection />
     </div>
   );
 }

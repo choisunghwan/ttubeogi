@@ -1,6 +1,16 @@
 import React from "react";
 
 // 작은 UI 아이콘 모음(이모지 대신 SVG) — 캘린더 담기 버튼, 항공편/바우처 표시에 씀.
+export function HouseIcon({ size = 16, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M4 11.5L12 4l8 7.5" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 10v9a1 1 0 001 1h10a1 1 0 001-1v-9" stroke={color} strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M10 20v-5.5a1 1 0 011-1h2a1 1 0 011 1V20" stroke={color} strokeWidth="1.8" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function CalendarIcon({ size = 16, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

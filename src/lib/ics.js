@@ -52,6 +52,33 @@ export function buildItemICS({ planTitle, item, dayDate }) {
   return lines.join("\r\n");
 }
 
+// 캘린더 화면의 "전체 캘린더로 내보내기" — 일정 항목 하나가 아니라 여러 Plan 전체를 한 번에
+// .ics 하나로 묶어서, 폰 캘린더 앱에 열면 전부 한꺼번에 추가되게 한다(여행 기간 전체가
+// 하루짜리 종일 일정으로 하나씩 들어감).
+export function buildPlansICS(plans) {
+  const stamp = fmtUTCStamp(new Date());
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Ttubeogi//KO", "CALSCALE:GREGORIAN"];
+  for (const plan of plans) {
+    const [y1, m1, d1] = plan.startDate.split("-").map(Number);
+    const [y2, m2, d2] = plan.endDate.split("-").map(Number);
+    const start = new Date(y1, m1 - 1, d1);
+    const end = new Date(y2, m2 - 1, d2);
+    end.setDate(end.getDate() + 1); // 종일 일정의 DTEND는 "다음날"까지 배타적으로 잡아야 정확함.
+    lines.push(
+      "BEGIN:VEVENT",
+      `UID:${plan.id}@ttubeogi.app`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${fmtDate(start)}`,
+      `DTEND;VALUE=DATE:${fmtDate(end)}`,
+      `SUMMARY:${escapeICS(`[${plan.kind}] ${plan.title}`)}`,
+      `DESCRIPTION:${escapeICS(`뚜버기 일정${plan.region ? " · " + plan.region : ""}`)}`,
+      "END:VEVENT"
+    );
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
+}
+
 export function downloadICS(filename, icsContent) {
   const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);

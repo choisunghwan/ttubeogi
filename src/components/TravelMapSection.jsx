@@ -2,16 +2,17 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { C, SERIF_EN } from "../theme";
 import { s } from "../styles";
-import { WalkTtubeogi } from "../components/TtubeogiCharacter";
-import { GlobeIcon, PlaneBadgeIcon } from "../components/Icons";
+import { WalkTtubeogi } from "./TtubeogiCharacter";
+import { GlobeIcon, PlaneBadgeIcon } from "./Icons";
 import { fmtDate, sinceLabel, formatWhen } from "../utils";
 import { KOREA_MAINLAND_PATHS, KOREA_JEJU_PATH } from "../data/koreaMapPaths";
 import { listMyPlans } from "../lib/api";
 import { getKnownPlanIds } from "../lib/localPlans";
 import { aggregateVisits } from "../lib/aggregateVisits";
 
-// 화면 1: 나의 여행 지도 — 이 브라우저가 아는 지난 일정들을 지역별 발자국으로 집계해서 보여준다.
-export default function TravelMap() {
+// 마이페이지 안에 들어가는 "나의 여행 지도" 섹션 — 예전엔 하단 탭의 독립 화면이었는데,
+// 마이페이지로 합치고 그 탭 자리는 캘린더로 바꿨다. 자체 헤더/뒤로가기 없이 섹션만 그림.
+export default function TravelMapSection() {
   const navigate = useNavigate();
   const [plans, setPlans] = useState(null); // null = 로딩 중
   const [error, setError] = useState(null);
@@ -26,10 +27,10 @@ export default function TravelMap() {
   }, []);
 
   if (plans === null && !error) {
-    return <div style={s.pad}><div style={s.emptyState}>불러오는 중…</div></div>;
+    return <div style={s.emptyState}>불러오는 중…</div>;
   }
   if (error) {
-    return <div style={s.pad}><div style={s.emptyState}>{error}</div></div>;
+    return <div style={s.emptyState}>{error}</div>;
   }
 
   const { domestic, overseas } = aggregateVisits(plans);
@@ -42,7 +43,7 @@ export default function TravelMap() {
   const upcoming = plans.filter((p) => p.status === "upcoming").sort((a, b) => a.startDate.localeCompare(b.startDate))[0];
 
   return (
-    <div style={s.pad}>
+    <div>
       <div style={s.head}>
         <WalkTtubeogi size={30} />
         <div>
@@ -66,15 +67,10 @@ export default function TravelMap() {
 
           <div style={s.mapFrame}>
             <svg viewBox="0 0 100 110" style={s.mapSvg}>
-              {/* 실제 대한민국 시/도 경계 데이터 기반 윤곽(src/data/koreaMapPaths.js). 도 경계선이
-                  옅게 보이지만 전부 같은 색으로 채워서 하나의 국토처럼 보이게 함. */}
               {KOREA_MAINLAND_PATHS.map((d, i) => (
                 <path key={i} d={d} fill={C.land} stroke={C.landStroke} strokeWidth="0.3" />
               ))}
               <path d={KOREA_JEJU_PATH} fill={C.land} stroke={C.landStroke} strokeWidth="0.3" />
-              {/* 발자국 그림 대신 방문 횟수 숫자만 깔끔하게 — 캐릭터/발바닥 아이콘이 커서
-                  안 이쁘고 고급스럽지 않다는 피드백으로 단순화. 5회 이상(단골)만 채워진
-                  원으로 살짝 구분하고, 그 외엔 전부 같은 크기의 테두리 원 + 숫자. */}
               {domestic.map((r) => {
                 const isSel = sel?.id === r.id;
                 const isRegular = r.visits >= 5;
