@@ -70,11 +70,13 @@ export function reorderItems(planId, dayId, itemIds) {
   });
 }
 
-// 실패(결과 없음)해도 예외를 던지지 않고 null을 반환 — 호출부에서 "결과 없음" UI로 자연스럽게 처리하기 위함.
+// 실패(결과 없음)해도 예외를 던지지 않고 빈 배열을 반환 — 호출부에서 "결과 없음" UI로 자연스럽게 처리하기 위함.
+// 후보를 여러 개 반환 — 동명이인(CGV 여러 지점)이나 국내/해외 동명 지명을 사용자가 직접 골라야 해서다.
 export async function geocodeQuery(q) {
   const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
-  if (!res.ok) return null;
-  return res.json();
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.results || [];
 }
 
 // 두 좌표 사이의 실제 도로 경로. 못 찾으면 null(호출부에서 직선으로 대체).

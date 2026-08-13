@@ -39,8 +39,9 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
   // 자동으로 무효화돼서 엉뚱한 좌표가 새 이름에 딸려가는 걸 막는다.
   const [coords, setCoords] = useState(item?.lat != null && item?.lng != null ? { lat: item.lat, lng: item.lng } : null);
   const [searchedFor, setSearchedFor] = useState(item ? (item.query || item.name || "") : "");
-  const [geoStatus, setGeoStatus] = useState(null); // null | "searching" | "notfound"
+  const [geoStatus, setGeoStatus] = useState(null); // null | "searching" | "notfound" | "picking"
   const [geoLabel, setGeoLabel] = useState(null);
+  const [geoCandidates, setGeoCandidates] = useState([]); // 검색 결과 여러 개 — 사용자가 골라야 함
 
   const currentTerm = (query.trim() || name.trim());
   const coordsValid = Boolean(coords) && currentTerm !== "" && searchedFor === currentTerm;
@@ -48,16 +49,23 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
   async function handleGeocode() {
     if (!currentTerm) return;
     setGeoStatus("searching");
-    const result = await geocodeQuery(currentTerm);
-    if (result) {
-      setCoords({ lat: result.lat, lng: result.lng });
-      setSearchedFor(currentTerm);
-      setGeoLabel(result.label);
-      setGeoStatus(null);
+    setCoords(null);
+    const results = await geocodeQuery(currentTerm);
+    if (results.length > 0) {
+      setGeoCandidates(results);
+      setGeoStatus("picking");
     } else {
-      setCoords(null);
+      setGeoCandidates([]);
       setGeoStatus("notfound");
     }
+  }
+
+  function pickCandidate(result) {
+    setCoords({ lat: result.lat, lng: result.lng });
+    setSearchedFor(currentTerm);
+    setGeoLabel(result.label);
+    setGeoCandidates([]);
+    setGeoStatus(null);
   }
 
   async function handleSubmit(e) {
@@ -152,6 +160,20 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
           </div>
           {coordsValid && <div style={{ ...s.formHint, color: C.orangeDeep, fontWeight: 700 }}>📍 {geoLabel} — 좌표 확인됨</div>}
           {geoStatus === "notfound" && <div style={s.formHint}>결과 없음 — 아래 지도 링크를 붙여넣어 주세요</div>}
+          {geoStatus === "picking" && geoCandidates.length > 0 && (
+            <div style={s.geoCandidateList}>
+              <div style={{ ...s.formHint, marginBottom: 4 }}>여러 곳이 검색됐어요 — 맞는 곳을 골라주세요</div>
+              {geoCandidates.map((r, i) => (
+                <button type="button" key={i} style={s.geoCandidateBtn} onClick={() => pickCandidate(r)}>
+                  <span style={s.geoCandidateFlag}>{r.source === "kakao" ? "🇰🇷" : "🌍"}</span>
+                  <span style={s.geoCandidateText}>
+                    <span style={s.geoCandidateLabel}>{r.label}</span>
+                    {r.address && <span style={s.geoCandidateAddr}>{r.address}</span>}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
 
           <div style={s.formLabel}>지도 링크 붙여넣기 (선택)</div>
           <input style={s.formInput} value={mapLink} onChange={(e) => setMapLink(e.target.value)} placeholder="구글맵/카카오맵 링크" />

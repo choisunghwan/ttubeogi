@@ -169,6 +169,10 @@ export default function PlanMap({ items, onGoToList }) {
     setWalking(true);
     let i = 0;
     let prev = { lat: geocoded[curNow].lat, lng: geocoded[curNow].lng };
+    // 프레임당 경로점 하나씩만 전진 + requestAnimationFrame을 setTimeout으로 한번 더 감싸던 이전 방식은
+    // 사실상 프레임을 두 번씩 걸러 뛰는 셈이라 체감 속도가 느렸다. rAF 하나로만 돌리고, 프레임당
+    // STEP_PER_FRAME개씩 전진시켜서 실제 걷는 속도가 나게 함(경로점 촘촘한 OSRM 응답 기준).
+    const STEP_PER_FRAME = 3;
     const animate = () => {
       if (i >= seg.length) {
         walkerMarkerRef.current.setLatLng([geocoded[clamped].lat, geocoded[clamped].lng]);
@@ -185,8 +189,8 @@ export default function PlanMap({ items, onGoToList }) {
         className: "ttubeogi-div-icon", iconSize: [40, 40], iconAnchor: [20, 34],
       }));
       prev = p;
-      i += 1;
-      rafRef.current = requestAnimationFrame(() => setTimeout(animate, 16));
+      i += STEP_PER_FRAME;
+      rafRef.current = requestAnimationFrame(animate);
     };
     animate();
   }
