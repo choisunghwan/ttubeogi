@@ -105,7 +105,10 @@ const MOVE_STYLE = {
   버스: { stepPerFrame: 7, icon: busIconHtml },
   택시: { stepPerFrame: 10, icon: carIconHtml },
   자차: { stepPerFrame: 10, icon: carIconHtml },
-  항공: { stepPerFrame: 26, icon: planeIconHtml },
+  // 항공 구간은 항상 고정 48포인트 직선 경로(OSRM 안 씀)라 stepPerFrame을 너무 크게 잡으면
+  // 2~3프레임 만에 끝나 버려서 순간이동처럼 안 보이는 문제가 있었음 — 눈에 보이면서도
+  // 확실히 제일 빠른 정도로 절충.
+  항공: { stepPerFrame: 6, icon: planeIconHtml },
   기타: { stepPerFrame: 3, icon: walkerIconHtml },
 };
 function moveStyleFor(move) {

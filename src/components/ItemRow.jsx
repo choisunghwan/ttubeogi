@@ -2,7 +2,8 @@ import React from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { s } from "../styles";
-import { TYPES } from "../theme";
+import { TYPES, C } from "../theme";
+import MoveIcon from "./MoveIcon";
 
 // 드래그 핸들만 dnd-kit 리스너를 붙인다 — 행 전체를 드래그 대상으로 하면
 // ✎/🗑 탭이나 스크롤 제스처와 자꾸 충돌해서, 잡을 수 있는 손잡이를 따로 둔다.
@@ -17,8 +18,13 @@ export default function ItemRow({ item, creator, onEdit, onDelete }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         {item.time && <div style={s.itemRowTime}>{item.time}</div>}
         <div style={s.itemRowName}>{item.name}</div>
-        <div style={s.itemRowMeta}>
-          {item.move ? `🚶 ${item.move}` : ""}{item.move && creator ? " · " : ""}
+        <div style={{ ...s.itemRowMeta, display: "flex", alignItems: "center", gap: 4 }}>
+          {item.move && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+              <MoveIcon move={item.move} size={13} color={C.muted} /> {item.move}
+            </span>
+          )}
+          {item.move && creator ? "·" : ""}
           {creator ? <span style={{ color: creator.color, fontWeight: 700 }}>{creator.name} 추가</span> : ""}
         </div>
       </div>
