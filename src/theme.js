@@ -4,7 +4,13 @@ export const C = {
   orange: "#e8863a", orangeDeep: "#cf6f28", cream: "#fdf6e9", creamShade: "#f2e6cf",
   muted: "#a89f8c", water: "#cfe2e6", green: "#d5e3c8",
   routeDone: "#c2b8a3", member2: "#5b8c7b", member3: "#7a6cc4",
+  // 보딩패스(홈 카드) 등 "고급스러운" 톤이 필요한 곳에 쓰는 금박 느낌 골드 악센트.
+  gold: "#b8934a", goldLight: "#d9bd80", goldDeep: "#8f6f34", navy: "#1f2a3a",
 };
+
+// 프리미엄 세리프 폰트(index.html에서 Google Fonts로 불러옴) — 티켓 카드 제목/숫자에 사용.
+export const SERIF_KO = "'Noto Serif KR', serif";
+export const SERIF_EN = "'Playfair Display', serif";
 
 // 일정 종류(kind)별 홈 카드 이모지
 export const KIND_EMOJI = { 여행: "✈️", 데이트: "💕", 약속: "🍺" };

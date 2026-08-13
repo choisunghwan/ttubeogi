@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { C, KIND_EMOJI } from "../theme";
+import { C } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "../components/TtubeogiCharacter";
+import KindIcon from "../components/KindIcon";
 import { listMyPlans } from "../lib/api";
 import { getKnownPlanIds } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
 import { getMe, KAKAO_LOGIN_URL } from "../lib/auth";
+
+// 종류별 보딩패스 상단 라벨 — 실제 항공권/티켓 발권 용지에 찍히는 문구 느낌으로.
+const TICKET_EYEBROW = { 여행: "BOARDING PASS", 데이트: "RESERVATION", 약속: "INVITATION" };
 
 // 화면 0: 홈 (여행·데이트·약속 전체 목록) — 이 브라우저가 만들었거나 참여한 일정 + (로그인 시) 계정 소유 일정.
 export default function HomeScreen() {
@@ -28,29 +32,36 @@ export default function HomeScreen() {
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
   const past = (plans || []).filter((p) => p.status === "past");
 
+  // 보딩패스(항공권) 형태 — 본문(왼쪽) + 절취선(펀치 노치) + 스텁(오른쪽)의 실제 티켓 구조를 그대로 흉내.
   const PlanCard = ({ p, hot }) => {
     const { when, nights } = formatWhen(p.startDate, p.endDate);
-    const dday = hot ? formatDday(p.startDate) : null;
+    // 40px 원형 뱃지에 넣을 거라 "오늘 출발! D-DAY" 같은 긴 문구는 짧게 줄인다.
+    const ddayFull = p.status === "upcoming" ? formatDday(p.startDate) : null;
+    const dday = ddayFull === "오늘 출발! D-DAY" ? "D-DAY" : ddayFull;
     return (
-      <div style={{ ...s.planCard, ...(hot ? s.planCardHot : {}) }} onClick={() => navigate(`/p/${p.id}`)}>
-        <div style={s.planEmoji}>{KIND_EMOJI[p.kind] || "📅"}</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={s.planTop}>
-            <span style={s.planKind}>{p.kind}</span>
-            {dday && <span style={s.planDday}>{dday}</span>}
-          </div>
-          <div style={s.planTitle}>{p.title}</div>
-          <div style={s.planWhen}>{when} · {nights}</div>
-          <div style={s.planBottom}>
+      <div style={{ ...s.ticketCard, ...(hot ? s.ticketCardHot : {}) }} onClick={() => navigate(`/p/${p.id}`)}>
+        <div style={s.ticketMain}>
+          <div style={s.ticketEyebrow}>{TICKET_EYEBROW[p.kind] || "ITINERARY"}</div>
+          <div style={s.ticketTitle}>{p.title}</div>
+          <div style={s.ticketWhen}>{when} · {nights}</div>
+          <div style={s.ticketBottom}>
             <div style={s.planMembers}>
               {p.members.map((m) => (
                 <span key={m.id} style={{ ...s.miniAvatar, background: m.color }}>{m.name[0]}</span>
               ))}
             </div>
-            <span style={s.planSpots}>📍 {p.spots}곳</span>
+            <span style={s.planSpots}>{p.spots}곳</span>
           </div>
         </div>
-        <div style={s.planGo}>▶</div>
+        <div style={s.ticketNotchTop} />
+        <div style={s.ticketPerforation} />
+        <div style={s.ticketNotchBottom} />
+        <div style={s.ticketStub}>
+          <KindIcon kind={p.kind} size={20} color={C.gold} />
+          {dday && <div style={s.ticketStubDday}>{dday}</div>}
+          <div style={s.ticketStubGo}>GO</div>
+          <div style={s.ticketBarcode} />
+        </div>
       </div>
     );
   };
