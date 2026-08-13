@@ -38,8 +38,10 @@ export default function HomeScreen() {
     // 40px 원형 뱃지에 넣을 거라 "오늘 출발! D-DAY" 같은 긴 문구는 짧게 줄인다.
     const ddayFull = p.status === "upcoming" ? formatDday(p.startDate) : null;
     const dday = ddayFull === "오늘 출발! D-DAY" ? "D-DAY" : ddayFull;
+    const past = p.status === "past";
     return (
-      <div style={{ ...s.ticketCard, ...(hot ? s.ticketCardHot : {}) }} onClick={() => navigate(`/p/${p.id}`)}>
+      <div style={{ ...s.ticketCard, ...(hot ? s.ticketCardHot : {}), ...(past ? s.ticketCardPast : {}) }}
+           onClick={() => navigate(`/p/${p.id}`)}>
         <div style={s.ticketMain}>
           <div style={s.ticketEyebrow}>{TICKET_EYEBROW[p.kind] || "ITINERARY"}</div>
           <div style={s.ticketTitle}>{p.title}</div>
@@ -52,11 +54,18 @@ export default function HomeScreen() {
             </div>
             <span style={s.planSpots}>{p.spots}곳</span>
           </div>
+          {past && <div style={s.ticketStampDone}>COMPLETE</div>}
         </div>
-        <div style={s.ticketNotchTop} />
-        <div style={s.ticketPerforation} />
-        <div style={s.ticketNotchBottom} />
-        <div style={s.ticketStub}>
+        {past ? (
+          <div style={s.ticketPerforationTorn} />
+        ) : (
+          <>
+            <div style={s.ticketNotchTop} />
+            <div style={s.ticketPerforation} />
+            <div style={s.ticketNotchBottom} />
+          </>
+        )}
+        <div style={{ ...s.ticketStub, ...(past ? s.ticketStubTorn : {}) }}>
           <KindIcon kind={p.kind} size={20} color={C.gold} />
           {dday && <div style={s.ticketStubDday}>{dday}</div>}
           <div style={s.ticketStubGo}>GO</div>

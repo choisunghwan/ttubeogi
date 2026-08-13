@@ -119,6 +119,12 @@ export const s = {
                 border: `1px solid ${C.goldLight}`, boxShadow: "0 3px 14px rgba(80,60,20,.08)",
                 marginBottom: 14, cursor: "pointer", overflow: "hidden" },
   ticketCardHot: { border: `1.5px solid ${C.gold}`, boxShadow: "0 8px 22px rgba(184,147,74,.22)" },
+  // 지난(완료된) 일정은 "다 쓴 티켓"처럼 — 살짝 바래고, 절취선을 실제로 찢어낸 지그재그로.
+  ticketCardPast: { filter: "grayscale(.4) opacity(.86)" },
+  ticketStampDone: { position: "absolute", top: 12, right: 92, fontFamily: SERIF_EN, fontStyle: "italic",
+                      fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: C.gold, opacity: 0.55,
+                      border: `1px solid ${C.gold}`, borderRadius: 4, padding: "1px 6px",
+                      transform: "rotate(-8deg)" },
   ticketMain: { flex: 1, minWidth: 0, padding: "15px 14px 14px" },
   ticketEyebrow: { fontFamily: SERIF_EN, fontStyle: "italic", fontSize: 10.5, fontWeight: 700,
                    letterSpacing: 1.6, color: C.gold, textTransform: "uppercase", marginBottom: 5 },
@@ -133,6 +139,14 @@ export const s = {
   planSpots: { fontSize: 11.5, color: C.muted, fontWeight: 600 },
   // 절취선 + 위아래 펀치 노치. stub 폭(76px)과 반드시 짝을 맞춰야 함(HomeScreen에서 같이 씀).
   ticketPerforation: { width: 0, borderLeft: `2px dashed ${C.goldLight}`, margin: "10px 0" },
+  // 지난 일정용 — 실제로 뜯어낸 지그재그 절취선(SVG 반복 패턴). 깨끗한 점선 대신 이걸 씀.
+  ticketPerforationTorn: {
+    width: 12, alignSelf: "stretch", margin: "0 -6px",
+    backgroundImage: `url("data:image/svg+xml,${encodeURIComponent(
+      `<svg xmlns='http://www.w3.org/2000/svg' width='12' height='20'><path d='M6 0 L1 5 L6 10 L1 15 L6 20' stroke='${C.goldLight}' stroke-width='1.4' fill='none'/></svg>`
+    )}")`,
+    backgroundRepeat: "repeat-y",
+  },
   ticketNotchTop: { position: "absolute", top: -9, right: 67, width: 18, height: 18, borderRadius: "50%",
                     background: C.paper, border: `1px solid ${C.goldLight}` },
   ticketNotchBottom: { position: "absolute", bottom: -9, right: 67, width: 18, height: 18, borderRadius: "50%",
@@ -140,6 +154,8 @@ export const s = {
   ticketStub: { width: 76, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center",
                 justifyContent: "center", gap: 8, padding: "10px 6px",
                 background: "linear-gradient(180deg, #fffaf0, #fbf3e2)" },
+  // 찢어서 다시 붙인 것처럼 살짝 삐뚤게.
+  ticketStubTorn: { transform: "rotate(-2.5deg) translateX(2px)" },
   ticketStubDday: { fontFamily: SERIF_EN, fontSize: 13, fontWeight: 700, color: C.goldDeep,
                      border: `1px solid ${C.goldLight}`, borderRadius: "50%", width: 40, height: 40,
                      display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center",
