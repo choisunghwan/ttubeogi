@@ -80,11 +80,11 @@ export default function TravelMap() {
                 const isRegular = r.visits >= 5;
                 return (
                   <g key={r.id} transform={`translate(${r.x}, ${r.y})`} style={{ cursor: "pointer" }} onClick={() => setSel(r)}>
-                    {isSel && <circle r="7" fill={C.gold} opacity="0.15" />}
-                    <circle r="4.3" fill={isRegular ? C.gold : "#fff"} stroke={C.gold} strokeWidth="0.7" />
-                    <text textAnchor="middle" y="1.4" fontFamily={SERIF_EN} fontSize="4.4" fontWeight="700"
+                    {isSel && <circle r="5.2" fill={C.gold} opacity="0.15" />}
+                    <circle r="3" fill={isRegular ? C.gold : "#fff"} stroke={C.gold} strokeWidth="0.6" />
+                    <text textAnchor="middle" y="1" fontFamily={SERIF_EN} fontSize="3.1" fontWeight="700"
                           fill={isRegular ? "#fff" : C.goldDeep}>{r.visits}</text>
-                    <text textAnchor="middle" y="9.3" fontSize="3.6"
+                    <text textAnchor="middle" y="7" fontSize="3.3"
                           fontWeight={isSel ? 800 : 600} fill={isSel ? C.goldDeep : C.ink}>{r.name}</text>
                   </g>
                 );
