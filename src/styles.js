@@ -196,7 +196,9 @@ export const s = {
   // 항목 리스트 카드
   itemRow: { display: "flex", alignItems: "center", gap: 12, background: "#fff", borderRadius: 14,
              padding: "12px 14px", marginBottom: 10, border: "1px solid #efe9dc",
-             boxShadow: "0 2px 8px rgba(0,0,0,.04)" },
+             boxShadow: "0 2px 8px rgba(0,0,0,.04)", transition: "background .3s, border-color .3s" },
+  // 지도에서 마커를 눌러 "이 일정으로 가기" 했을 때 스크롤된 행을 잠깐 강조.
+  itemRowHighlight: { background: "#fbecd9", border: `1px solid ${C.orange}` },
   itemRowBadge: { width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center",
                   justifyContent: "center", fontSize: 16, flexShrink: 0, color: "#fff" },
   itemRowTime: { fontSize: 11.5, color: C.muted, fontWeight: 700 },

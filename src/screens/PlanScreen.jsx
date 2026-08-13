@@ -91,6 +91,17 @@ export default function PlanScreen() {
   const [copied, setCopied] = useState(false);
   const [viewTab, setViewTab] = useState("list"); // "list" | "map"
   const [editingPlan, setEditingPlan] = useState(false);
+  const [highlightItemId, setHighlightItemId] = useState(null);
+
+  // 지도에서 마커를 탭했을 때 "이 일정으로 가기" — 리스트 탭으로 바꾸고 해당 행으로 스크롤 + 잠깐 강조.
+  function goToItem(itemId) {
+    setViewTab("list");
+    setHighlightItemId(itemId);
+    setTimeout(() => {
+      document.getElementById(`item-${itemId}`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 60);
+    setTimeout(() => setHighlightItemId((prev) => (prev === itemId ? null : prev)), 1800);
+  }
 
   function reload() {
     getPlan(planId)
@@ -223,7 +234,9 @@ export default function PlanScreen() {
         </div>
       )}
 
-      {selectedDay && viewTab === "map" && <PlanMap items={selectedDay.items} onGoToList={() => setViewTab("list")} />}
+      {selectedDay && viewTab === "map" && (
+        <PlanMap items={selectedDay.items} onGoToList={() => setViewTab("list")} onSelectItem={goToItem} />
+      )}
 
       {selectedDay && viewTab === "list" && (
         <>
@@ -238,6 +251,9 @@ export default function PlanScreen() {
                   key={item.id}
                   item={item}
                   creator={plan.members.find((m) => m.id === item.createdBy)}
+                  dayDate={selectedDay.date}
+                  planTitle={plan.title}
+                  highlighted={item.id === highlightItemId}
                   onEdit={() => setModalState({ item })}
                   onDelete={() => handleDelete(item)}
                 />

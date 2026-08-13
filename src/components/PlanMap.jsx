@@ -7,7 +7,15 @@ import { WalkTtubeogi } from "./TtubeogiCharacter";
 import { fetchRoute } from "../lib/api";
 
 // Leaflet의 기본 divIcon 스타일(흰 배경+테두리)을 지우기 위한 클래스. 마커/캐릭터 둘 다 씀.
-const RESET_CSS = `.ttubeogi-div-icon { background: transparent; border: none; }`;
+// .ttubeogi-marker-label: 상시 표시 라벨(시간+장소명)을 Leaflet 기본 툴팁 박스 대신 앱 톤에 맞는 작은 알약 모양으로.
+const RESET_CSS = `
+.ttubeogi-div-icon { background: transparent; border: none; }
+.ttubeogi-marker-label {
+  background: ${C.ink}; color: #fff; border: none; box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap;
+}
+.ttubeogi-marker-label::before { border-top-color: ${C.ink}; }
+`;
 
 function walkerIconHtml({ step, facing, walking, size = 40 }) {
   const bob = walking ? (step % 2 === 0 ? -1.5 : 0.5) : 0;
@@ -105,10 +113,9 @@ const MOVE_STYLE = {
   버스: { stepPerFrame: 7, icon: busIconHtml },
   택시: { stepPerFrame: 10, icon: carIconHtml },
   자차: { stepPerFrame: 10, icon: carIconHtml },
-  // 항공 구간은 항상 고정 48포인트 직선 경로(OSRM 안 씀)라 stepPerFrame을 너무 크게 잡으면
-  // 2~3프레임 만에 끝나 버려서 순간이동처럼 안 보이는 문제가 있었음 — 눈에 보이면서도
-  // 확실히 제일 빠른 정도로 절충.
-  항공: { stepPerFrame: 6, icon: planeIconHtml },
+  // 항공은 다른 모든 수단보다 확실히 빠르게 — 직선 고정 48포인트 경로(OSRM 안 씀)라
+  // 너무 크면 완전히 순간이동처럼 보이지만, "빠른 게 우선"이라는 피드백에 맞춰 최대한 올림.
+  항공: { stepPerFrame: 16, icon: planeIconHtml },
   기타: { stepPerFrame: 3, icon: walkerIconHtml },
 };
 function moveStyleFor(move) {
@@ -154,7 +161,7 @@ async function buildRoadPath(points, moves) {
   return path;
 }
 
-export default function PlanMap({ items, onGoToList }) {
+export default function PlanMap({ items, onGoToList, onSelectItem }) {
   const geocoded = items.filter((it) => it.lat != null && it.lng != null);
   const skippedCount = items.length - geocoded.length;
 
@@ -173,8 +180,10 @@ export default function PlanMap({ items, onGoToList }) {
   // walkTo 내부에서는 state를 직접 읽지 말고 항상 최신값을 담고 있는 ref를 읽는다(오래된 클로저 방지).
   const currentRef = useRef(current);
   const walkingRef = useRef(walking);
+  const onSelectItemRef = useRef(onSelectItem);
   useEffect(() => { currentRef.current = current; }, [current]);
   useEffect(() => { walkingRef.current = walking; }, [walking]);
+  useEffect(() => { onSelectItemRef.current = onSelectItem; }, [onSelectItem]);
 
   // 지도 인스턴스는 한 번만 생성 — 컨테이너는 좌표 유무와 상관없이 항상 렌더링되므로(아래 return 참고)
   // "처음 열었을 때 좌표 있는 항목이 하나도 없다가 나중에 생기는" 경우에도 문제없이 갱신된다.
@@ -215,8 +224,16 @@ export default function PlanMap({ items, onGoToList }) {
       const marker = L.marker([it.lat, it.lng], {
         icon: L.divIcon({ html: pinIconHtml(i + 1, t.color, i === 0), className: "ttubeogi-div-icon", iconSize: [30, 30], iconAnchor: [15, 15] }),
       }).addTo(layerGroupRef.current);
-      marker.on("click", () => walkTo(i));
-      marker.bindTooltip(`${it.time ? it.time + " " : ""}${it.name}`, { direction: "top" });
+      // 탭해야만 보이던 툴팁 대신 항상 시간+장소명이 라벨로 붙어있게(permanent) — 지도만 보고도
+      // 몇 시에 어딜 가는지 알 수 있어야 한다는 피드백. 클릭하면 캐릭터가 걸어가는 것도 그대로 두고,
+      // 추가로 해당 항목 상세로 이동(리스트 탭 + 하이라이트)하는 콜백도 같이 호출.
+      marker.bindTooltip(`${it.time ? it.time + " " : ""}${it.name}`, {
+        permanent: true, direction: "top", offset: [0, -10], className: "ttubeogi-marker-label",
+      });
+      marker.on("click", () => {
+        walkTo(i);
+        onSelectItemRef.current?.(it.id);
+      });
     });
 
     const walker = L.marker([geocoded[0].lat, geocoded[0].lng], {

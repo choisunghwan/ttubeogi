@@ -32,6 +32,8 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
   const [query, setQuery] = useState(item?.query || "");
   const [mapLink, setMapLink] = useState(item?.mapLink || "");
   const [move, setMove] = useState(item?.move || "도보");
+  const [flightNo, setFlightNo] = useState(item?.flightNo || "");
+  const [voucher, setVoucher] = useState(item?.voucher || "");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -74,11 +76,12 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
     setSubmitting(true);
     setError(null);
     const geo = coordsValid ? { lat: coords.lat, lng: coords.lng } : { lat: null, lng: null };
+    const extra = { flightNo: flightNo.trim() || null, voucher: voucher.trim() || null };
     try {
       if (isEdit) {
-        await updateItem(planId, item.id, { type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null });
+        await updateItem(planId, item.id, { type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra });
       } else {
-        await addItem(planId, { dayId, type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, createdBy: memberId });
+        await addItem(planId, { dayId, type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra, createdBy: memberId });
       }
       onSaved();
     } catch (err) {
@@ -189,6 +192,15 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
             ))}
           </div>
           <input style={{ ...s.formInput, marginTop: 8 }} value={move} onChange={(e) => setMove(e.target.value)} placeholder="직접 입력도 가능" />
+
+          {type === "항공" && (
+            <>
+              <div style={s.formLabel}>항공편명 (선택)</div>
+              <input style={s.formInput} value={flightNo} onChange={(e) => setFlightNo(e.target.value)} placeholder="예: KE123" />
+            </>
+          )}
+          <div style={s.formLabel}>바우처·예약번호 (선택)</div>
+          <input style={s.formInput} value={voucher} onChange={(e) => setVoucher(e.target.value)} placeholder="예: 예약번호, 확인코드" />
 
           {error && <div style={s.formError}>{error}</div>}
 
