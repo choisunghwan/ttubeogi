@@ -85,7 +85,8 @@ export const s = {
   // 홈
   homeHead: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14 },
   profileDot: { width: 34, height: 34, borderRadius: "50%", background: C.orange, color: "#fff",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800 },
+                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 800,
+                cursor: "pointer", flexShrink: 0 },
   homeGreeting: { fontSize: 21, fontWeight: 800, lineHeight: 1.35, marginBottom: 22 },
   sectionLabel: { fontSize: 13, fontWeight: 800, color: "#6f6656", marginBottom: 10, letterSpacing: -0.2 },
   planCard: { display: "flex", alignItems: "center", gap: 12, background: "#fff", borderRadius: 15,
@@ -117,8 +118,10 @@ export const s = {
 
   // 폼 공통 (일정 만들기 / 참여 게이트 / 항목 모달)
   formLabel: { fontSize: 13, fontWeight: 700, color: "#6f6656", marginBottom: 7, marginTop: 18 },
+  // fontSize 16 미만이면 iOS Safari가 이 입력창에 포커스될 때 화면을 자동으로 확대해버려서
+  // "탭하면 사이즈가 깨진다"는 증상으로 보인다 — 16 유지 필수.
   formInput: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #e2dac6",
-               fontSize: 15, fontFamily: "inherit", background: "#fff", color: C.ink, boxSizing: "border-box" },
+               fontSize: 16, fontFamily: "inherit", background: "#fff", color: C.ink, boxSizing: "border-box" },
   formRow: { display: "flex", gap: 10 },
   formHint: { fontSize: 12, color: C.muted, marginTop: 6 },
   formError: { fontSize: 13, color: "#c0392b", marginTop: 10, fontWeight: 600 },
@@ -142,7 +145,7 @@ export const s = {
   // 공유 링크 바
   shareBar: { display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px dashed #ddd4c2",
               borderRadius: 12, padding: "10px 12px", marginBottom: 14 },
-  shareLink: { flex: 1, fontSize: 12.5, color: C.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  shareLink: { flex: 1, minWidth: 0, fontSize: 12.5, color: C.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   shareCopyBtn: { border: "none", background: C.ink, color: "#fff", fontSize: 12.5, fontWeight: 700,
                   padding: "7px 12px", borderRadius: 8, cursor: "pointer", flexShrink: 0 },
 

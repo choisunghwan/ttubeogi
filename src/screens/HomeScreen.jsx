@@ -6,7 +6,7 @@ import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import { listMyPlans } from "../lib/api";
 import { getKnownPlanIds } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
-import { getMe, logout, KAKAO_LOGIN_URL } from "../lib/auth";
+import { getMe, KAKAO_LOGIN_URL } from "../lib/auth";
 
 // 화면 0: 홈 (여행·데이트·약속 전체 목록) — 이 브라우저가 만들었거나 참여한 일정 + (로그인 시) 계정 소유 일정.
 export default function HomeScreen() {
@@ -23,12 +23,6 @@ export default function HomeScreen() {
       .catch((e) => { if (!cancelled) setError(e.message); });
     return () => { cancelled = true; };
   }, []);
-
-  async function handleLogout() {
-    if (!window.confirm("로그아웃할까요?")) return;
-    await logout();
-    setMe(null);
-  }
 
   const upcoming = (plans || []).filter((p) => p.status === "upcoming")
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
@@ -70,13 +64,9 @@ export default function HomeScreen() {
             <WalkTtubeogi size={28} /> 뚜버기
           </h1>
         </div>
-        {me ? (
-          <div style={s.profileDot} title={`${me.nickname}님으로 로그인됨`} onClick={handleLogout}>
-            {me.nickname[0]}
-          </div>
-        ) : (
-          <div style={{ width: 34, height: 34 }} />
-        )}
+        <div style={s.profileDot} title="마이페이지" onClick={() => navigate("/me")}>
+          {me ? me.nickname[0] : "👤"}
+        </div>
       </div>
 
       <div style={s.homeGreeting}>
@@ -92,7 +82,9 @@ export default function HomeScreen() {
         </a>
       )}
       {me && (
-        <div style={s.formHint}>{me.nickname}님으로 로그인됨 (프로필 아이콘 눌러서 로그아웃)</div>
+        <div style={{ ...s.formHint, cursor: "pointer" }} onClick={() => navigate("/me")}>
+          {me.nickname}님으로 로그인됨 · 마이페이지에서 닉네임 바꾸기 →
+        </div>
       )}
 
       {plans === null && !error && <div style={s.emptyState}>불러오는 중…</div>}

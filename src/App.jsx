@@ -5,6 +5,7 @@ import HomeScreen from "./screens/HomeScreen";
 import TravelMap from "./screens/TravelMap";
 import CreatePlanScreen from "./screens/CreatePlanScreen";
 import PlanScreen from "./screens/PlanScreen";
+import MyPageScreen from "./screens/MyPageScreen";
 
 // 하단 탭바는 홈/나의지도 두 화면에서만 보인다 — 일정 만들기·일정 상세는 자체 상단 흐름을 쓴다.
 function TabBar() {
@@ -36,6 +37,7 @@ export default function App() {
           <Route path="/map" element={<TravelMap />} />
           <Route path="/new" element={<CreatePlanScreen />} />
           <Route path="/p/:planId" element={<PlanScreen />} />
+          <Route path="/me" element={<MyPageScreen />} />
         </Routes>
       </div>
       {showTabBar && <TabBar />}

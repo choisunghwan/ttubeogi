@@ -12,3 +12,16 @@ export const KAKAO_LOGIN_URL = "/api/auth/kakao/start";
 export async function logout() {
   await fetch("/api/auth/logout", { method: "POST" });
 }
+
+export async function updateNickname(nickname) {
+  const res = await fetch("/api/auth/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nickname }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || "닉네임을 바꾸지 못했어요");
+  }
+  return res.json();
+}

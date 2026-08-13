@@ -60,14 +60,14 @@ app.get("/kakao/callback", async (c) => {
   const kakaoId = String(profile.id);
   const nickname = profile.kakao_account?.profile?.nickname || profile.properties?.nickname || "카카오사용자";
 
-  let user = await c.env.DB.prepare("SELECT id FROM users WHERE kakao_id = ?").bind(kakaoId).first();
+  let user = await c.env.DB.prepare("SELECT id, nickname_customized FROM users WHERE kakao_id = ?").bind(kakaoId).first();
   if (!user) {
     const userId = newId("user");
     await c.env.DB.prepare("INSERT INTO users (id, kakao_id, nickname) VALUES (?, ?, ?)")
       .bind(userId, kakaoId, nickname).run();
     user = { id: userId };
-  } else {
-    // 닉네임이 바뀌었을 수 있으니 로그인할 때마다 최신화.
+  } else if (!user.nickname_customized) {
+    // 마이페이지에서 직접 닉네임을 바꾼 적 없는 사람만 카카오 최신 닉네임으로 계속 동기화.
     await c.env.DB.prepare("UPDATE users SET nickname = ? WHERE id = ?").bind(nickname, user.id).run();
   }
 
@@ -83,6 +83,19 @@ app.get("/kakao/callback", async (c) => {
 app.get("/me", async (c) => {
   const user = await getSessionUser(c);
   return c.json({ user });
+});
+
+// PATCH /api/auth/me — 마이페이지에서 닉네임 직접 수정. 이후로는 카카오 닉네임 자동 동기화가 멈춘다.
+app.patch("/me", async (c) => {
+  const user = await getSessionUser(c);
+  if (!user) return c.json({ error: "로그인 안 됨" }, 401);
+
+  const { nickname } = await c.req.json().catch(() => ({}));
+  if (!nickname?.trim()) return c.json({ error: "nickname은 필수입니다" }, 400);
+
+  await c.env.DB.prepare("UPDATE users SET nickname = ?, nickname_customized = 1 WHERE id = ?")
+    .bind(nickname.trim(), user.id).run();
+  return c.json({ id: user.id, nickname: nickname.trim() });
 });
 
 // POST /api/auth/logout
