@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { C } from "../theme";
+import { C, SERIF_EN } from "../theme";
 import { s } from "../styles";
-import { WalkTtubeogi, SittingTtubeogi, Footprint } from "../components/TtubeogiCharacter";
-import { MedalIcon, GlobeIcon, PlaneBadgeIcon } from "../components/Icons";
-import { level, fmtDate, sinceLabel, formatWhen } from "../utils";
+import { WalkTtubeogi } from "../components/TtubeogiCharacter";
+import { GlobeIcon, PlaneBadgeIcon } from "../components/Icons";
+import { fmtDate, sinceLabel, formatWhen } from "../utils";
 import { KOREA_MAINLAND_PATHS, KOREA_JEJU_PATH } from "../data/koreaMapPaths";
 import { listMyPlans } from "../lib/api";
 import { getKnownPlanIds } from "../lib/localPlans";
@@ -72,32 +72,29 @@ export default function TravelMap() {
                 <path key={i} d={d} fill={C.land} stroke={C.landStroke} strokeWidth="0.3" />
               ))}
               <path d={KOREA_JEJU_PATH} fill={C.land} stroke={C.landStroke} strokeWidth="0.3" />
+              {/* 발자국 그림 대신 방문 횟수 숫자만 깔끔하게 — 캐릭터/발바닥 아이콘이 커서
+                  안 이쁘고 고급스럽지 않다는 피드백으로 단순화. 5회 이상(단골)만 채워진
+                  원으로 살짝 구분하고, 그 외엔 전부 같은 크기의 테두리 원 + 숫자. */}
               {domestic.map((r) => {
-                const lv = level(r.visits), isSel = sel?.id === r.id;
-                const fpSize = lv === 1 ? 15 : 20, fpOp = lv === 1 ? 0.55 : 0.9;
-                const fpColor = lv >= 2 ? C.orangeDeep : C.orange;
+                const isSel = sel?.id === r.id;
+                const isRegular = r.visits >= 5;
                 return (
                   <g key={r.id} transform={`translate(${r.x}, ${r.y})`} style={{ cursor: "pointer" }} onClick={() => setSel(r)}>
-                    {isSel && <circle r="9" fill={C.orange} opacity="0.15" />}
-                    <foreignObject x="-8" y="-8" width="16" height="16" style={{ overflow: "visible", pointerEvents: "none" }}>
-                      {lv === 3
-                        ? <div style={{ transform: "translate(-9px,-16px)" }}><SittingTtubeogi size={30} /></div>
-                        : <div style={{ transform: `translate(${-fpSize / 2 + 8}px,${-fpSize / 2 + 8}px)` }}><Footprint size={fpSize} opacity={fpOp} color={fpColor} /></div>}
-                    </foreignObject>
-                    <g transform="translate(5, -6)">
-                      <circle r="3.4" fill="#fff" stroke={fpColor} strokeWidth="0.8" />
-                      <text textAnchor="middle" y="1.3" fontSize="4" fontWeight="700" fill={fpColor}>{r.visits}</text>
-                    </g>
-                    <text textAnchor="middle" y={lv === 3 ? 14 : 12} fontSize="3.6"
-                          fontWeight={isSel ? 800 : 600} fill={isSel ? C.orangeDeep : C.ink}>{r.name}</text>
+                    {isSel && <circle r="7" fill={C.gold} opacity="0.15" />}
+                    <circle r="4.3" fill={isRegular ? C.gold : "#fff"} stroke={C.gold} strokeWidth="0.7" />
+                    <text textAnchor="middle" y="1.4" fontFamily={SERIF_EN} fontSize="4.4" fontWeight="700"
+                          fill={isRegular ? "#fff" : C.goldDeep}>{r.visits}</text>
+                    <text textAnchor="middle" y="9.3" fontSize="3.6"
+                          fontWeight={isSel ? 800 : 600} fill={isSel ? C.goldDeep : C.ink}>{r.name}</text>
                   </g>
                 );
               })}
             </svg>
             <div style={s.legend}>
-              <span style={s.legendItem}><Footprint size={13} opacity={0.55} color={C.orange} /> 1회</span>
-              <span style={s.legendItem}><Footprint size={15} opacity={0.9} color={C.orangeDeep} /> 3회+</span>
-              <span style={s.legendItem}><MedalIcon size={13} color={C.gold} /> 5회+ 단골</span>
+              <span style={s.legendItem}>
+                <svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="5" fill={C.gold} /></svg>
+                5회 이상 다녀온 단골 여행지
+              </span>
             </div>
           </div>
 

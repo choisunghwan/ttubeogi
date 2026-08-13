@@ -1,6 +1,4 @@
 // 데모(ttubeogi.jsx)의 유틸 함수 그대로.
-export function level(v) { return v >= 5 ? 3 : v >= 3 ? 2 : 1; }
-
 export function fmtDate(str) {
   const [y, m, d] = str.split("-");
   return `${y}.${m}.${d}`;
