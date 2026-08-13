@@ -62,6 +62,29 @@ export function deleteItem(planId, itemId) {
   return request(`/api/plans/${planId}/items/${itemId}`, { method: "DELETE" });
 }
 
+// 항목 첨부파일(항공권/기차표/바우처 사진·PDF) — multipart 대신 파일 원본을 그대로 바디로,
+// 파일명은 헤더로 넘긴다(한글 파일명 대비 encodeURIComponent).
+export async function uploadAttachment(planId, itemId, file) {
+  const res = await fetch(`/api/plans/${planId}/items/${itemId}/attachment`, {
+    method: "POST",
+    headers: { "Content-Type": file.type, "X-Filename": encodeURIComponent(file.name) },
+    body: file,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `업로드 실패 (${res.status})`);
+  }
+  return res.json();
+}
+
+export function deleteAttachment(planId, itemId) {
+  return request(`/api/plans/${planId}/items/${itemId}/attachment`, { method: "DELETE" });
+}
+
+export function attachmentUrl(planId, itemId) {
+  return `/api/plans/${planId}/items/${itemId}/attachment`;
+}
+
 // 드래그로 바꾼 순서 반영 — itemIds는 그 날짜 항목 전체를 새 순서대로.
 export function reorderItems(planId, dayId, itemIds) {
   return request(`/api/plans/${planId}/days/${dayId}/reorder`, {

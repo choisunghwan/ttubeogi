@@ -159,6 +159,17 @@ export const s = {
   geoCandidateText: { display: "flex", flexDirection: "column", minWidth: 0 },
   geoCandidateLabel: { fontSize: 14, fontWeight: 700, color: C.ink },
   geoCandidateAddr: { fontSize: 11.5, color: C.muted, marginTop: 2 },
+  // 항목 첨부파일(항공권/기차표/바우처) 선택·미리보기
+  attachmentPickBtn: { display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 14px",
+                        borderRadius: 12, border: `1.5px dashed #d9cdb2`, color: C.muted, fontSize: 13.5,
+                        fontWeight: 700, cursor: "pointer", width: "fit-content" },
+  attachmentPreview: { display: "flex", alignItems: "center", gap: 8, padding: "10px 12px",
+                        borderRadius: 12, border: "1px solid #e2dac6", background: "#fff" },
+  attachmentPreviewName: { flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: C.ink,
+                            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
+  attachmentPreviewLink: { fontSize: 12.5, fontWeight: 700, color: C.orangeDeep, flexShrink: 0 },
+  attachmentRemoveBtn: { border: "none", background: "transparent", color: "#c0392b", fontSize: 12.5,
+                          fontWeight: 700, cursor: "pointer", flexShrink: 0 },
   pickerGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
   pickerBtn: { padding: "10px 16px", borderRadius: 20, border: "1.5px solid #e2dac6", background: "#fff",
                color: C.ink, fontSize: 14, fontWeight: 700, cursor: "pointer" },
@@ -221,4 +232,8 @@ export const s = {
   modalHead: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
   modalTitle: { fontSize: 18, fontWeight: 800 },
   modalCloseBtn: { border: "none", background: "transparent", fontSize: 20, color: C.muted, cursor: "pointer" },
+
+  // 첨부 이미지(항공권/바우처) 라이트박스
+  attachmentLightbox: { position: "relative", maxWidth: "92vw", maxHeight: "88vh" },
+  attachmentLightboxImg: { maxWidth: "92vw", maxHeight: "88vh", borderRadius: 10, display: "block" },
 };

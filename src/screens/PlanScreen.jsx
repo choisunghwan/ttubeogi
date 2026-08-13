@@ -251,6 +251,7 @@ export default function PlanScreen() {
                   key={item.id}
                   item={item}
                   creator={plan.members.find((m) => m.id === item.createdBy)}
+                  planId={planId}
                   dayDate={selectedDay.date}
                   planTitle={plan.title}
                   highlighted={item.id === highlightItemId}

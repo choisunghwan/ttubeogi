@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { s } from "../styles";
 import { C, TYPES } from "../theme";
-import { addItem, updateItem, geocodeQuery } from "../lib/api";
+import { addItem, updateItem, geocodeQuery, uploadAttachment, deleteAttachment, attachmentUrl } from "../lib/api";
+import { PaperclipIcon } from "./Icons";
+
+const MAX_ATTACHMENT_MB = 8;
 
 const MOVE_OPTIONS = ["도보", "지하철", "버스", "트램", "택시", "자차", "항공", "기타"];
 const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1); // 1~12
@@ -36,6 +39,42 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
   const [voucher, setVoucher] = useState(item?.voucher || "");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // 첨부파일: 새로 고른 파일은 저장 시점에 업로드(신규 항목은 id가 있어야 올릴 수 있어서),
+  // 기존 첨부는 attachmentInfo로 표시하고 삭제는 바로 반영.
+  const [attachmentFile, setAttachmentFile] = useState(null);
+  const [attachmentInfo, setAttachmentInfo] = useState(
+    item?.attachmentName ? { name: item.attachmentName, type: item.attachmentType } : null
+  );
+  const [attachmentError, setAttachmentError] = useState(null);
+  const [removingAttachment, setRemovingAttachment] = useState(false);
+
+  function handlePickFile(e) {
+    const file = e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    setAttachmentError(null);
+    if (file.size > MAX_ATTACHMENT_MB * 1024 * 1024) {
+      setAttachmentError(`파일이 너무 커요 (최대 ${MAX_ATTACHMENT_MB}MB)`);
+      return;
+    }
+    setAttachmentFile(file);
+    setAttachmentInfo({ name: file.name, type: file.type });
+  }
+
+  async function handleRemoveAttachment() {
+    setAttachmentFile(null);
+    if (!isEdit || !item.attachmentName) { setAttachmentInfo(null); return; }
+    setRemovingAttachment(true);
+    try {
+      await deleteAttachment(planId, item.id);
+      setAttachmentInfo(null);
+    } catch (err) {
+      setAttachmentError(err.message);
+    } finally {
+      setRemovingAttachment(false);
+    }
+  }
 
   // 좌표는 "마지막으로 검색에 성공한 검색어"와 지금 검색어가 같을 때만 유효 — query/name을 바꾸면
   // 자동으로 무효화돼서 엉뚱한 좌표가 새 이름에 딸려가는 걸 막는다.
@@ -78,10 +117,16 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
     const geo = coordsValid ? { lat: coords.lat, lng: coords.lng } : { lat: null, lng: null };
     const extra = { flightNo: flightNo.trim() || null, voucher: voucher.trim() || null };
     try {
+      let itemId = item?.id;
       if (isEdit) {
         await updateItem(planId, item.id, { type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra });
       } else {
-        await addItem(planId, { dayId, type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra, createdBy: memberId });
+        const created = await addItem(planId, { dayId, type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra, createdBy: memberId });
+        itemId = created.id;
+      }
+      // 새로 고른 첨부파일이 있으면 항목 저장 후에 올린다(신규 항목은 id가 있어야 업로드 가능).
+      if (attachmentFile) {
+        await uploadAttachment(planId, itemId, attachmentFile);
       }
       onSaved();
     } catch (err) {
@@ -201,6 +246,28 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
           )}
           <div style={s.formLabel}>바우처·예약번호 (선택)</div>
           <input style={s.formInput} value={voucher} onChange={(e) => setVoucher(e.target.value)} placeholder="예: 예약번호, 확인코드" />
+
+          <div style={s.formLabel}>항공권·기차표·바우처 파일 (선택)</div>
+          {attachmentInfo ? (
+            <div style={s.attachmentPreview}>
+              <PaperclipIcon size={15} color={C.orangeDeep} />
+              <span style={s.attachmentPreviewName}>{attachmentInfo.name}</span>
+              {isEdit && item.attachmentName === attachmentInfo.name && !attachmentFile && (
+                <a href={attachmentUrl(planId, item.id)} target="_blank" rel="noreferrer" style={s.attachmentPreviewLink}>
+                  보기
+                </a>
+              )}
+              <button type="button" style={s.attachmentRemoveBtn} disabled={removingAttachment} onClick={handleRemoveAttachment}>
+                {removingAttachment ? "삭제 중…" : "삭제"}
+              </button>
+            </div>
+          ) : (
+            <label style={s.attachmentPickBtn}>
+              <PaperclipIcon size={15} color={C.muted} /> 사진 또는 PDF 첨부
+              <input type="file" accept="image/*,application/pdf" onChange={handlePickFile} style={{ display: "none" }} />
+            </label>
+          )}
+          {attachmentError && <div style={s.formError}>{attachmentError}</div>}
 
           {error && <div style={s.formError}>{error}</div>}
 

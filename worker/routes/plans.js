@@ -172,6 +172,8 @@ app.get("/:id", async (c) => {
         detail: it.detail,
         flightNo: it.flight_no,
         voucher: it.voucher,
+        attachmentName: it.attachment_name,
+        attachmentType: it.attachment_type,
         itemStatus: it.item_status,
         createdBy: it.created_by,
       });
@@ -369,6 +371,74 @@ app.delete("/:id/items/:itemId", async (c) => {
 
   await c.env.DB.prepare("DELETE FROM items WHERE id = ?").bind(itemId).run();
   c.executionCtx.waitUntil(notifyRoom(c.env, id, "item.deleted"));
+  return c.json({ ok: true });
+});
+
+// 항목 첨부파일(항공권/기차표/바우처 사진·PDF) — R2에 실제 바이트를 두고 D1엔 키/파일명/타입만.
+const ATTACHMENT_MAX_BYTES = 8 * 1024 * 1024; // 8MB
+const ALLOWED_ATTACHMENT_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif", "application/pdf"]);
+
+// POST /api/plans/:id/items/:itemId/attachment — 바디는 파일 원본 바이트,
+// Content-Type 헤더로 MIME, X-Filename 헤더(URL 인코딩)로 원본 파일명을 받는다(멀티파트 대신 단순하게).
+app.post("/:id/items/:itemId/attachment", async (c) => {
+  const { id, itemId } = c.req.param();
+  const owns = await c.env.DB.prepare(
+    "SELECT items.id, items.attachment_key FROM items JOIN days ON items.day_id = days.id WHERE items.id = ? AND days.plan_id = ?"
+  ).bind(itemId, id).first();
+  if (!owns) return c.json({ error: "항목을 찾을 수 없습니다" }, 404);
+
+  const contentType = c.req.header("content-type") || "";
+  if (!ALLOWED_ATTACHMENT_TYPES.has(contentType)) {
+    return c.json({ error: "이미지(JPG/PNG/WEBP/HEIC) 또는 PDF만 첨부할 수 있어요" }, 400);
+  }
+  const filenameHeader = c.req.header("x-filename");
+  const filename = filenameHeader ? decodeURIComponent(filenameHeader) : "attachment";
+
+  const body = await c.req.arrayBuffer();
+  if (body.byteLength === 0) return c.json({ error: "빈 파일입니다" }, 400);
+  if (body.byteLength > ATTACHMENT_MAX_BYTES) return c.json({ error: "파일이 너무 커요 (최대 8MB)" }, 400);
+
+  // 기존 첨부가 있으면 먼저 지워서 R2에 고아 파일이 안 남게.
+  if (owns.attachment_key) {
+    await c.env.ATTACHMENTS.delete(owns.attachment_key).catch(() => {});
+  }
+  const key = `items/${itemId}/${newId("att")}`;
+  await c.env.ATTACHMENTS.put(key, body, { httpMetadata: { contentType } });
+  await c.env.DB.prepare("UPDATE items SET attachment_key = ?, attachment_name = ?, attachment_type = ? WHERE id = ?")
+    .bind(key, filename, contentType, itemId).run();
+
+  c.executionCtx.waitUntil(notifyRoom(c.env, id, "item.updated"));
+  return c.json({ attachmentName: filename, attachmentType: contentType });
+});
+
+// GET /api/plans/:id/items/:itemId/attachment — 파일 그대로 스트리밍(이미지는 바로 보이고, PDF는 브라우저 뷰어로).
+app.get("/:id/items/:itemId/attachment", async (c) => {
+  const { id, itemId } = c.req.param();
+  const item = await c.env.DB.prepare(
+    "SELECT items.attachment_key, items.attachment_type FROM items JOIN days ON items.day_id = days.id WHERE items.id = ? AND days.plan_id = ?"
+  ).bind(itemId, id).first();
+  if (!item?.attachment_key) return c.json({ error: "첨부파일이 없습니다" }, 404);
+
+  const obj = await c.env.ATTACHMENTS.get(item.attachment_key);
+  if (!obj) return c.json({ error: "파일을 찾을 수 없습니다" }, 404);
+
+  return new Response(obj.body, {
+    headers: { "Content-Type": item.attachment_type || "application/octet-stream", "Cache-Control": "private, max-age=86400" },
+  });
+});
+
+// DELETE /api/plans/:id/items/:itemId/attachment
+app.delete("/:id/items/:itemId/attachment", async (c) => {
+  const { id, itemId } = c.req.param();
+  const item = await c.env.DB.prepare(
+    "SELECT items.attachment_key FROM items JOIN days ON items.day_id = days.id WHERE items.id = ? AND days.plan_id = ?"
+  ).bind(itemId, id).first();
+  if (!item) return c.json({ error: "항목을 찾을 수 없습니다" }, 404);
+  if (item.attachment_key) await c.env.ATTACHMENTS.delete(item.attachment_key).catch(() => {});
+  await c.env.DB.prepare(
+    "UPDATE items SET attachment_key = NULL, attachment_name = NULL, attachment_type = NULL WHERE id = ?"
+  ).bind(itemId).run();
+  c.executionCtx.waitUntil(notifyRoom(c.env, id, "item.updated"));
   return c.json({ ok: true });
 });
 

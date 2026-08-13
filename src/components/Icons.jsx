@@ -22,6 +22,15 @@ export function TicketIcon({ size = 14, color = "currentColor" }) {
   );
 }
 
+export function PaperclipIcon({ size = 15, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M17 7.5l-7.6 7.6a3 3 0 104.24 4.24l8.02-8.02a5 5 0 00-7.07-7.07L6.2 11.66a7 7 0 009.9 9.9"
+            stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function PlaneBadgeIcon({ size = 14, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
