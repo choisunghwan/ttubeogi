@@ -113,9 +113,10 @@ const MOVE_STYLE = {
   버스: { stepPerFrame: 7, icon: busIconHtml },
   택시: { stepPerFrame: 10, icon: carIconHtml },
   자차: { stepPerFrame: 10, icon: carIconHtml },
-  // 항공은 다른 모든 수단보다 확실히 빠르게 — 직선 고정 48포인트 경로(OSRM 안 씀)라
-  // 너무 크면 완전히 순간이동처럼 보이지만, "빠른 게 우선"이라는 피드백에 맞춰 최대한 올림.
-  항공: { stepPerFrame: 16, icon: planeIconHtml },
+  // 항공은 직선 고정 48포인트 경로(OSRM 안 씀)라 stepPerFrame을 너무 올리면 3~4프레임 만에
+  // 끝나서 순간이동처럼 보이고("눈에 안 보인다"는 피드백), 너무 낮추면 다른 수단보다 안 빨라
+  // 보임 — 약 13프레임(~200ms) 정도로 눈에 보이는 속도감을 유지하면서 제일 빠르게 절충.
+  항공: { stepPerFrame: 4, icon: planeIconHtml },
   기타: { stepPerFrame: 3, icon: walkerIconHtml },
 };
 function moveStyleFor(move) {
