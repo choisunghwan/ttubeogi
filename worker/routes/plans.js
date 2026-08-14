@@ -346,6 +346,19 @@ app.patch("/:id/items/:itemId", async (c) => {
   const body = await c.req.json().catch(() => ({}));
   const sets = [];
   const values = [];
+
+  // dayId로 다른 날짜로 옮기는 경우 — 그 날짜가 같은 일정 소속인지 확인하고, 옮겨간 날의 맨 끝
+  // sort_order로 붙인다(그 날 기존 순서를 안 흔들기 위해).
+  if ("dayId" in body) {
+    const targetDay = await c.env.DB.prepare("SELECT id FROM days WHERE id = ? AND plan_id = ?")
+      .bind(body.dayId, id).first();
+    if (!targetDay) return c.json({ error: "날짜를 찾을 수 없습니다" }, 404);
+    const maxRow = await c.env.DB.prepare("SELECT MAX(sort_order) AS m FROM items WHERE day_id = ?")
+      .bind(body.dayId).first();
+    sets.push("day_id = ?", "sort_order = ?");
+    values.push(body.dayId, (maxRow?.m ?? -1) + 1);
+  }
+
   for (const [key, column] of Object.entries(PATCHABLE_FIELDS)) {
     if (key in body) {
       sets.push(`${column} = ?`);

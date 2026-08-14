@@ -318,6 +318,7 @@ export default function PlanScreen() {
         <ItemFormModal
           planId={planId}
           dayId={selectedDayId}
+          days={plan.days}
           item={modalState.item}
           memberId={memberId}
           onClose={() => setModalState(null)}

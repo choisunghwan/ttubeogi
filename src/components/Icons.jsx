@@ -99,6 +99,22 @@ export function MapPinIcon({ size = 15, color = "currentColor" }) {
   );
 }
 
+export function ExpandIcon({ size = 16, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M9 4H4v5M15 4h5v5M4 15v5h5M20 15v5h-5" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function CollapseIcon({ size = 16, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M4 9h5V4M15 4v5h5M20 15h-5v5M9 20v-5H4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export function KakaoDotIcon({ size = 14 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

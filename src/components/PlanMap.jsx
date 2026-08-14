@@ -4,6 +4,7 @@ import "leaflet/dist/leaflet.css";
 import { C, TYPES } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "./TtubeogiCharacter";
+import { ExpandIcon, CollapseIcon } from "./Icons";
 import { fetchRoute } from "../lib/api";
 
 // Leaflet의 기본 divIcon 스타일(흰 배경+테두리)을 지우기 위한 클래스. 마커/캐릭터 둘 다 씀.
@@ -181,6 +182,14 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
   const [current, setCurrent] = useState(0);
   const [walking, setWalking] = useState(false);
   const [routesLoading, setRoutesLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // 전체화면으로 바뀌면 지도 컨테이너의 실제 픽셀 크기가 달라지므로, Leaflet이 갖고 있던 크기
+  // 캐시를 다시 재보 하게 함(안 하면 타일이 원래 작은 크기 기준으로만 채워져서 빈 공간이 생김).
+  useEffect(() => {
+    const t = setTimeout(() => mapRef.current?.invalidateSize(), 60);
+    return () => clearTimeout(t);
+  }, [isFullscreen]);
   // Leaflet 마커의 click 핸들러는 데이터 이펙트가 재실행될 때만 다시 바인딩되므로,
   // walkTo 내부에서는 state를 직접 읽지 말고 항상 최신값을 담고 있는 ref를 읽는다(오래된 클로저 방지).
   const currentRef = useRef(current);
@@ -310,6 +319,19 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
     animate();
   }
 
+  const navBlock = geocoded.length > 0 && (
+    <>
+      <div style={{ ...s.progressLabel, textAlign: "center", margin: "10px 0" }}>
+        {current + 1} / {geocoded.length} · {geocoded[current]?.name}
+      </div>
+      <div style={s.nav}>
+        <button style={{ ...s.navBtn, ...s.navPrev }} disabled={walking || routesLoading || current === 0} onClick={() => walkTo(current - 1)}>◀ 이전</button>
+        <button style={{ ...s.navBtn, ...s.navNow }} disabled={walking || routesLoading} onClick={() => walkTo(0)}>처음</button>
+        <button style={{ ...s.navBtn, ...s.navNext }} disabled={walking || routesLoading || current === geocoded.length - 1} onClick={() => walkTo(current + 1)}>다음 ▶</button>
+      </div>
+    </>
+  );
+
   return (
     <div>
       <style>{RESET_CSS}</style>
@@ -329,25 +351,34 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
 
       {/* 찍을 위치가 없을 때도 지도 컨테이너 자체는 계속 렌더링해둔다(Leaflet 인스턴스를 유지해야
           나중에 좌표가 생겼을 때 새로 만들 필요 없이 바로 마커가 붙는다) — 대신 display:none으로
-          화면에서만 숨겨서, 찍을 것도 없는데 빈 지도 미리보기가 어정쩡하게 보이던 문제를 없앤다. */}
-      <div style={{ ...s.tripMapFrame, ...(geocoded.length === 0 ? { display: "none" } : {}) }}>
+          화면에서만 숨겨서, 찍을 것도 없는데 빈 지도 미리보기가 어정쩡하게 보이던 문제를 없앤다.
+          전체화면 버튼을 누르면 이 프레임 자체를 화면 전체를 덮는 고정 레이어로 바꾼다 — 지도
+          컨테이너 DOM을 그대로 두고 스타일만 바꿔서 Leaflet 인스턴스가 안 깨지게 함. */}
+      <div style={{
+        ...s.tripMapFrame,
+        ...(geocoded.length === 0 ? { display: "none" } : {}),
+        ...(isFullscreen ? s.tripMapFrameFullscreen : {}),
+      }}>
         <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
+        {geocoded.length > 0 && (
+          <button
+            style={s.mapFullscreenBtn}
+            title={isFullscreen ? "전체화면 닫기" : "전체화면으로 보기"}
+            onClick={() => setIsFullscreen((v) => !v)}
+          >
+            {isFullscreen ? <CollapseIcon size={16} color={C.ink} /> : <ExpandIcon size={16} color={C.ink} />}
+          </button>
+        )}
+        {isFullscreen && <div style={s.mapFullscreenNav}>{navBlock}</div>}
       </div>
 
-      {geocoded.length > 0 && (
+      {!isFullscreen && geocoded.length > 0 && (
         <>
           {skippedCount > 0 && (
             <div style={s.formHint}>{skippedCount}개 항목은 좌표가 없어 지도에 안 보여요.</div>
           )}
           {routesLoading && <div style={s.formHint}>실제 도로 경로를 불러오는 중…</div>}
-          <div style={{ ...s.progressLabel, textAlign: "center", margin: "10px 0" }}>
-            {current + 1} / {geocoded.length} · {geocoded[current]?.name}
-          </div>
-          <div style={s.nav}>
-            <button style={{ ...s.navBtn, ...s.navPrev }} disabled={walking || routesLoading || current === 0} onClick={() => walkTo(current - 1)}>◀ 이전</button>
-            <button style={{ ...s.navBtn, ...s.navNow }} disabled={walking || routesLoading} onClick={() => walkTo(0)}>처음</button>
-            <button style={{ ...s.navBtn, ...s.navNext }} disabled={walking || routesLoading || current === geocoded.length - 1} onClick={() => walkTo(current + 1)}>다음 ▶</button>
-          </div>
+          {navBlock}
         </>
       )}
     </div>

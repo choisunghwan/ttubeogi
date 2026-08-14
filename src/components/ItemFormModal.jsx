@@ -27,9 +27,11 @@ function parseTime(time) {
 }
 
 // 일정 항목 추가/수정 모달. item이 있으면 수정, 없으면 dayId에 새로 추가.
-export default function ItemFormModal({ planId, dayId, item, memberId, onClose, onSaved }) {
+export default function ItemFormModal({ planId, dayId, days = [], item, memberId, onClose, onSaved }) {
   const isEdit = Boolean(item);
   const [type, setType] = useState(item?.type || "명소");
+  // 항목이 속한 날짜(일차) — 수정 모드에서 다른 날로 옮길 수 있게. 기본값은 지금 보고 있는 날.
+  const [moveDayId, setMoveDayId] = useState(dayId);
   const [time, setTime] = useState(item?.time || "");
   const [name, setName] = useState(item?.name || "");
   const [query, setQuery] = useState(item?.query || "");
@@ -130,7 +132,7 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
     try {
       let itemId = item?.id;
       if (isEdit) {
-        await updateItem(planId, item.id, { type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra });
+        await updateItem(planId, item.id, { type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra, ...(moveDayId !== dayId ? { dayId: moveDayId } : {}) });
       } else {
         const created = await addItem(planId, { dayId, type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra, createdBy: memberId });
         itemId = created.id;
@@ -155,6 +157,17 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
         </div>
 
         <form onSubmit={handleSubmit}>
+          {isEdit && days.length > 1 && (
+            <>
+              <div style={s.formLabel}>날짜</div>
+              <select style={s.formInput} value={moveDayId} onChange={(e) => setMoveDayId(e.target.value)}>
+                {days.map((d, i) => (
+                  <option key={d.id} value={d.id}>{i + 1}일차 · {d.date.slice(5).replace("-", "/")}</option>
+                ))}
+              </select>
+            </>
+          )}
+
           <div style={s.formLabel}>종류</div>
           <div style={s.pickerGrid}>
             {Object.entries(TYPES).map(([key, t]) => (
