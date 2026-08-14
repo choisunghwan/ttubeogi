@@ -22,7 +22,7 @@ export default function TicketCard({ item, nextItem, dayLabel, planId, isPast, o
   }
 
   const lightbox = showAttachment && (
-    <div style={s.modalOverlay} onClick={() => setShowAttachment(false)}>
+    <div style={s.lightboxOverlay} onClick={() => setShowAttachment(false)}>
       <div style={s.attachmentLightbox} onClick={(e) => e.stopPropagation()}>
         <button
           style={{ position: "absolute", top: -14, right: -14, width: 32, height: 32, borderRadius: "50%",

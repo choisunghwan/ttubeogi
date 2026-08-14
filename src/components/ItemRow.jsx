@@ -64,12 +64,17 @@ export default function ItemRow({ item, creator, planId, dayDate, planTitle, hig
               </span>
             )}
             {item.attachmentName && (
-              <button type="button" onClick={handleOpenAttachment}
-                      style={{ display: "inline-flex", alignItems: "center", gap: 3, border: "none",
-                               background: "transparent", padding: 0, color: C.orangeDeep, fontWeight: 700,
-                               fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>
-                <PaperclipIcon size={12} color={C.orangeDeep} /> {item.attachmentName}
-              </button>
+              isImageAttachment ? (
+                <img src={attachmentUrl(planId, item.id)} alt={item.attachmentName}
+                     onClick={handleOpenAttachment} style={s.itemRowThumb} />
+              ) : (
+                <button type="button" onClick={handleOpenAttachment}
+                        style={{ display: "inline-flex", alignItems: "center", gap: 3, border: "none",
+                                 background: "transparent", padding: 0, color: C.orangeDeep, fontWeight: 700,
+                                 fontSize: 12, cursor: "pointer", textDecoration: "underline" }}>
+                  <PaperclipIcon size={12} color={C.orangeDeep} /> {item.attachmentName}
+                </button>
+              )
             )}
           </div>
         )}
@@ -81,7 +86,7 @@ export default function ItemRow({ item, creator, planId, dayDate, planTitle, hig
       </div>
 
       {showAttachment && (
-        <div style={s.modalOverlay} onClick={() => setShowAttachment(false)}>
+        <div style={s.lightboxOverlay} onClick={() => setShowAttachment(false)}>
           <div style={s.attachmentLightbox} onClick={(e) => e.stopPropagation()}>
             <button
               style={{ position: "absolute", top: -14, right: -14, width: 32, height: 32, borderRadius: "50%",

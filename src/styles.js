@@ -252,6 +252,8 @@ export const s = {
   itemRowTime: { fontSize: 11.5, color: C.muted, fontWeight: 700 },
   itemRowName: { fontSize: 15, fontWeight: 800 },
   itemRowMeta: { fontSize: 12, color: C.muted, marginTop: 2 },
+  itemRowThumb: { width: 28, height: 28, borderRadius: 7, objectFit: "cover", cursor: "pointer",
+                   border: `1px solid ${C.goldLight}`, verticalAlign: "middle" },
   itemRowActions: { display: "flex", gap: 6, flexShrink: 0 },
   itemRowActionBtn: { border: "none", background: "#f2ede0", color: "#6f6656", width: 28, height: 28,
                       borderRadius: 8, cursor: "pointer", fontSize: 13 },
@@ -310,7 +312,10 @@ export const s = {
   modalTitle: { fontSize: 18, fontWeight: 800 },
   modalCloseBtn: { border: "none", background: "transparent", fontSize: 20, color: C.muted, cursor: "pointer" },
 
-  // 첨부 이미지(항공권/바우처) 라이트박스
+  // 첨부 이미지(항공권/바우처) 라이트박스 — modalOverlay는 아래에서 올라오는 폼 시트용이라
+  // alignItems:flex-end라, 사진처럼 화면 중앙에 떠야 하는 것들은 따로 center로 둔다.
+  lightboxOverlay: { position: "fixed", inset: 0, background: "rgba(58,47,36,.45)", display: "flex",
+                      alignItems: "center", justifyContent: "center", zIndex: 50 },
   attachmentLightbox: { position: "relative", maxWidth: "92vw", maxHeight: "88vh" },
   attachmentLightboxImg: { maxWidth: "92vw", maxHeight: "88vh", borderRadius: 10, display: "block" },
 
