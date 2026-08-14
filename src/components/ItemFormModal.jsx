@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { s } from "../styles";
 import { C, TYPES } from "../theme";
 import { addItem, updateItem, geocodeQuery, uploadAttachment, deleteAttachment, attachmentUrl } from "../lib/api";
@@ -41,13 +41,22 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
   const [submitting, setSubmitting] = useState(false);
 
   // 첨부파일: 새로 고른 파일은 저장 시점에 업로드(신규 항목은 id가 있어야 올릴 수 있어서),
-  // 기존 첨부는 attachmentInfo로 표시하고 삭제는 바로 반영.
+  // 기존 첨부는 attachmentInfo로 표시하고 삭제는 바로 반영. previewUrl은 실제 썸네일 미리보기용
+  // (새로 고른 파일은 브라우저 로컬 blob URL, 기존 첨부는 서버 URL) — 텍스트 파일명만 보여주는
+  // 것보다 사진을 바로 보여주는 게 확인하기 편해서.
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [attachmentInfo, setAttachmentInfo] = useState(
     item?.attachmentName ? { name: item.attachmentName, type: item.attachmentType } : null
   );
+  const [previewUrl, setPreviewUrl] = useState(
+    item?.attachmentName && item.attachmentType?.startsWith("image/") ? attachmentUrl(planId, item.id) : null
+  );
   const [attachmentError, setAttachmentError] = useState(null);
   const [removingAttachment, setRemovingAttachment] = useState(false);
+  const previewUrlRef = useRef(previewUrl);
+  previewUrlRef.current = previewUrl;
+  // 새로 고른 파일 미리보기는 브라우저 로컬 blob URL이라, 모달이 닫힐 때 안 지워주면 메모리에 남는다.
+  useEffect(() => () => { if (previewUrlRef.current?.startsWith("blob:")) URL.revokeObjectURL(previewUrlRef.current); }, []);
 
   function handlePickFile(e) {
     const file = e.target.files[0];
@@ -60,10 +69,12 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
     }
     setAttachmentFile(file);
     setAttachmentInfo({ name: file.name, type: file.type });
+    setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return file.type.startsWith("image/") ? URL.createObjectURL(file) : null; });
   }
 
   async function handleRemoveAttachment() {
     setAttachmentFile(null);
+    setPreviewUrl((prev) => { if (prev) URL.revokeObjectURL(prev); return null; });
     if (!isEdit || !item.attachmentName) { setAttachmentInfo(null); return; }
     setRemovingAttachment(true);
     try {
@@ -250,9 +261,13 @@ export default function ItemFormModal({ planId, dayId, item, memberId, onClose, 
           <div style={s.formLabel}>항공권·기차표·바우처 파일 (선택)</div>
           {attachmentInfo ? (
             <div style={s.attachmentPreview}>
-              <PaperclipIcon size={15} color={C.orangeDeep} />
+              {previewUrl ? (
+                <img src={previewUrl} alt={attachmentInfo.name} style={s.attachmentThumbSmall} />
+              ) : (
+                <PaperclipIcon size={15} color={C.orangeDeep} />
+              )}
               <span style={s.attachmentPreviewName}>{attachmentInfo.name}</span>
-              {isEdit && item.attachmentName === attachmentInfo.name && !attachmentFile && (
+              {isEdit && item.attachmentName === attachmentInfo.name && !attachmentFile && !previewUrl && (
                 <a href={attachmentUrl(planId, item.id)} target="_blank" rel="noreferrer" style={s.attachmentPreviewLink}>
                   보기
                 </a>

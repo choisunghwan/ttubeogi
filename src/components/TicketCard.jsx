@@ -11,6 +11,7 @@ export default function TicketCard({ item, nextItem, dayLabel, planId, isPast, o
   const [showAttachment, setShowAttachment] = useState(false);
   const isImageAttachment = item.attachmentType?.startsWith("image/");
   const isFlight = item.type === "항공" && item.flightNo;
+  const thumbUrl = item.attachmentName ? attachmentUrl(planId, item.id) : null;
 
   function handleOpenAttachment() {
     if (isImageAttachment) {
@@ -29,26 +30,24 @@ export default function TicketCard({ item, nextItem, dayLabel, planId, isPast, o
                    boxShadow: "0 2px 8px rgba(0,0,0,.3)" }}
           onClick={() => setShowAttachment(false)}
         >✕</button>
-        <img src={attachmentUrl(planId, item.id)} alt={item.attachmentName} style={s.attachmentLightboxImg} />
+        <img src={thumbUrl} alt={item.attachmentName} style={s.attachmentLightboxImg} />
       </div>
     </div>
   );
 
-  const hasFooter = Boolean(item.voucher || item.attachmentName);
-  const footerContent = (
-    <>
-      {item.voucher && (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: C.ink, fontSize: 12.5, fontWeight: 600 }}>
-          <TicketIcon size={13} color={C.gold} /> {item.voucher}
-        </span>
-      )}
-      {item.attachmentName && (
-        <button type="button" onClick={handleOpenAttachment} style={s.ticketAttachmentBtn}>
-          <PaperclipIcon size={12} color={C.gold} /> {item.attachmentName} 보기
-        </button>
-      )}
-    </>
+  // 첨부가 사진이면 파일명 텍스트 링크 대신 실제 썸네일을 보여준다 — 클릭하면 라이트박스로 크게.
+  // PDF 등 이미지가 아니면 미리보기가 불가능하니 기존처럼 파일명 링크(새 탭으로 열기)로.
+  const attachmentThumb = item.attachmentName && (
+    isImageAttachment ? (
+      <img src={thumbUrl} alt={item.attachmentName} style={s.ticketThumb} onClick={handleOpenAttachment} />
+    ) : (
+      <button type="button" onClick={handleOpenAttachment} style={s.ticketThumbFile}>
+        <PaperclipIcon size={16} color={C.gold} />
+      </button>
+    )
   );
+
+  const hasVoucher = Boolean(item.voucher);
 
   if (isFlight) {
     return (
@@ -78,10 +77,21 @@ export default function TicketCard({ item, nextItem, dayLabel, planId, isPast, o
             </div>
           </div>
 
-          {hasFooter && <div style={s.flightTicketDivider} />}
-          {hasFooter && <div style={s.ticketFooter}>{footerContent}</div>}
-
-          <button type="button" style={s.ticketEditLink} onClick={onEdit}>✎ 편집</button>
+          {(hasVoucher || attachmentThumb) && <div style={s.flightTicketDivider} />}
+          {(hasVoucher || attachmentThumb) && (
+            <div style={s.ticketFooter}>
+              {attachmentThumb}
+              {hasVoucher && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: C.ink, fontSize: 12.5, fontWeight: 600 }}>
+                  <TicketIcon size={13} color={C.gold} /> {item.voucher}
+                </span>
+              )}
+              <button type="button" style={{ ...s.ticketEditLink, marginTop: 0, marginLeft: "auto" }} onClick={onEdit}>✎ 편집</button>
+            </div>
+          )}
+          {!hasVoucher && !attachmentThumb && (
+            <button type="button" style={s.ticketEditLink} onClick={onEdit}>✎ 편집</button>
+          )}
         </div>
         {lightbox}
       </div>
@@ -90,10 +100,17 @@ export default function TicketCard({ item, nextItem, dayLabel, planId, isPast, o
 
   return (
     <div style={s.ticketCardMini}>
+      {attachmentThumb}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={s.ticketCardMiniDay}>{dayLabel}{item.time ? ` · ${item.time}` : ""}</div>
         <div style={s.itemRowName}>{item.name}</div>
-        {hasFooter && <div style={{ ...s.ticketFooter, marginTop: 6 }}>{footerContent}</div>}
+        {hasVoucher && (
+          <div style={{ ...s.ticketFooter, marginTop: 6 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, color: C.ink, fontSize: 12.5, fontWeight: 600 }}>
+              <TicketIcon size={13} color={C.gold} /> {item.voucher}
+            </span>
+          </div>
+        )}
       </div>
       <button style={s.itemRowActionBtn} onClick={onEdit}>✎</button>
       {lightbox}

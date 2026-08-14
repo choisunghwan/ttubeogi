@@ -203,6 +203,8 @@ export const s = {
   attachmentPreviewName: { flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: C.ink,
                             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   attachmentPreviewLink: { fontSize: 12.5, fontWeight: 700, color: C.orangeDeep, flexShrink: 0 },
+  attachmentThumbSmall: { width: 36, height: 36, borderRadius: 8, objectFit: "cover", flexShrink: 0,
+                           border: "1px solid #e2dac6" },
   attachmentRemoveBtn: { border: "none", background: "transparent", color: "#c0392b", fontSize: 12.5,
                           fontWeight: 700, cursor: "pointer", flexShrink: 0 },
   pickerGrid: { display: "flex", flexWrap: "wrap", gap: 8 },
@@ -266,6 +268,12 @@ export const s = {
                           textDecoration: "underline" },
   ticketEditLink: { border: "none", background: "transparent", color: C.muted, fontWeight: 700, fontSize: 12.5,
                      cursor: "pointer", padding: 0, marginTop: 10, alignSelf: "flex-start" },
+  // 첨부파일 텍스트 링크 대신 보여주는 실제 썸네일 — 사진이면 그대로, PDF 등이면 아이콘 박스로.
+  ticketThumb: { width: 46, height: 46, borderRadius: 10, objectFit: "cover", flexShrink: 0,
+                 border: `1px solid ${C.goldLight}`, cursor: "pointer" },
+  ticketThumbFile: { width: 46, height: 46, borderRadius: 10, flexShrink: 0, border: `1px solid ${C.goldLight}`,
+                      background: "#fbf3e2", display: "flex", alignItems: "center", justifyContent: "center",
+                      cursor: "pointer" },
 
   // 항공편 전용 티켓 카드 — 실제 항공권처럼 출발/도착 구간으로 보여준다.
   flightTicketWrap: { marginBottom: 14 },
