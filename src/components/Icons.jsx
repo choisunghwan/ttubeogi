@@ -115,6 +115,17 @@ export function CollapseIcon({ size = 16, color = "currentColor" }) {
   );
 }
 
+export function ShareIcon({ size = 15, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="18" cy="5" r="3" stroke={color} strokeWidth="1.7" />
+      <circle cx="6" cy="12" r="3" stroke={color} strokeWidth="1.7" />
+      <circle cx="18" cy="19" r="3" stroke={color} strokeWidth="1.7" />
+      <path d="M8.6 10.5L15.4 6.5M8.6 13.5l6.8 4" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function KakaoDotIcon({ size = 14 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

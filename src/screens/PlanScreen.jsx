@@ -10,7 +10,7 @@ import EditPlanModal from "../components/EditPlanModal";
 import PlanMap from "../components/PlanMap";
 import ItemRow from "../components/ItemRow";
 import TicketCard from "../components/TicketCard";
-import { ListIcon, MapPinIcon, TicketIcon } from "../components/Icons";
+import { ListIcon, MapPinIcon, TicketIcon, ShareIcon } from "../components/Icons";
 import { getPlan, joinPlan, deleteItem, reorderItems } from "../lib/api";
 import { getMemberId, rememberPlan } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
@@ -169,6 +169,16 @@ export default function PlanScreen() {
     });
   }
 
+  // 기기가 지원하면(대부분 모바일 브라우저) 카카오톡/메시지 등으로 바로 공유하는 시스템 공유창을 띄운다.
+  // 미지원 브라우저에서는 버튼 자체를 안 보여주고 "링크 복사"만 남긴다.
+  async function shareNative() {
+    try {
+      await navigator.share({ title: plan.title, text: `${plan.title} 일정 보러 가기`, url: shareUrl });
+    } catch (e) {
+      // 사용자가 공유창을 취소한 경우(AbortError)는 조용히 무시
+    }
+  }
+
   async function handleDelete(item) {
     if (!window.confirm(`"${item.name}" 삭제할까요?`)) return;
     try {
@@ -229,6 +239,11 @@ export default function PlanScreen() {
 
       <div style={s.shareBar}>
         <span style={s.shareLink}>{shareUrl}</span>
+        {typeof navigator !== "undefined" && navigator.share && (
+          <button style={s.shareNativeBtn} title="바로 공유하기" onClick={shareNative}>
+            <ShareIcon size={15} color="#fff" />
+          </button>
+        )}
         <button style={s.shareCopyBtn} onClick={copyShareLink}>{copied ? "복사됨!" : "링크 복사"}</button>
       </div>
 

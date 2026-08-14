@@ -243,6 +243,9 @@ export const s = {
   shareLink: { flex: 1, minWidth: 0, fontSize: 12.5, color: C.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
   shareCopyBtn: { border: "none", background: C.ink, color: "#fff", fontSize: 12.5, fontWeight: 700,
                   padding: "7px 12px", borderRadius: 8, cursor: "pointer", flexShrink: 0 },
+  shareNativeBtn: { border: "none", background: C.orange, color: "#fff", width: 30, height: 30,
+                     borderRadius: 8, cursor: "pointer", flexShrink: 0, display: "flex",
+                     alignItems: "center", justifyContent: "center" },
 
   // 날짜 칩
   dayChips: { display: "flex", gap: 8, overflowX: "auto", marginBottom: 14, paddingBottom: 2 },
