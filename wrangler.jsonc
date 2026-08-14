@@ -25,11 +25,9 @@
   ],
 
   // R2 — 항목별 첨부파일(항공권/기차표/바우처 사진·PDF) 저장용.
-  // 계정에서 R2를 아직 활성화 안 해서 버킷이 없는 동안은 배포가 이 바인딩 때문에 막히므로
-  // 임시로 주석 처리 — R2 활성화되면 주석 풀고 `wrangler r2 bucket create ttubeogi-attachments` 실행.
-  // "r2_buckets": [
-  //   { "binding": "ATTACHMENTS", "bucket_name": "ttubeogi-attachments" }
-  // ],
+  "r2_buckets": [
+    { "binding": "ATTACHMENTS", "bucket_name": "ttubeogi-attachments" }
+  ],
 
   // 실시간 동기화용 Durable Object — 일정(Plan) id 하나당 PlanRoom 인스턴스 하나.
   "durable_objects": {
