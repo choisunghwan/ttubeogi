@@ -63,12 +63,15 @@ app.get("/kakao/callback", async (c) => {
   let user = await c.env.DB.prepare("SELECT id, nickname_customized FROM users WHERE kakao_id = ?").bind(kakaoId).first();
   if (!user) {
     const userId = newId("user");
-    await c.env.DB.prepare("INSERT INTO users (id, kakao_id, nickname) VALUES (?, ?, ?)")
+    await c.env.DB.prepare("INSERT INTO users (id, kakao_id, nickname, last_login_at) VALUES (?, ?, ?, datetime('now'))")
       .bind(userId, kakaoId, nickname).run();
     user = { id: userId };
-  } else if (!user.nickname_customized) {
-    // 마이페이지에서 직접 닉네임을 바꾼 적 없는 사람만 카카오 최신 닉네임으로 계속 동기화.
-    await c.env.DB.prepare("UPDATE users SET nickname = ? WHERE id = ?").bind(nickname, user.id).run();
+  } else {
+    if (!user.nickname_customized) {
+      // 마이페이지에서 직접 닉네임을 바꾼 적 없는 사람만 카카오 최신 닉네임으로 계속 동기화.
+      await c.env.DB.prepare("UPDATE users SET nickname = ? WHERE id = ?").bind(nickname, user.id).run();
+    }
+    await c.env.DB.prepare("UPDATE users SET last_login_at = datetime('now') WHERE id = ?").bind(user.id).run();
   }
 
   const sessionValue = await signSession(user.id, c.env.SESSION_SECRET);

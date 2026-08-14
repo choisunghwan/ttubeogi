@@ -15,6 +15,10 @@ export function listAdminUsers() {
   return request("/api/admin/users");
 }
 
+export function listAdminMembers() {
+  return request("/api/admin/members");
+}
+
 export function createPlan({ kind, title, startDate, endDate, region, creatorName }) {
   return request("/api/plans", {
     method: "POST",
