@@ -109,6 +109,9 @@ export default function HomeScreen() {
         <div style={s.emptyState}>
           <WalkTtubeogi size={40} />
           <div style={{ marginTop: 10 }}>아직 만든 일정이 없어요.<br />첫 일정을 만들어보세요!</div>
+          <button style={{ ...s.newBtn, maxWidth: 260, margin: "16px auto 0" }} onClick={() => navigate("/new")}>
+            <span style={{ fontSize: 20 }}>＋</span> 새 일정 만들기
+          </button>
         </div>
       )}
 
@@ -130,10 +133,9 @@ export default function HomeScreen() {
         </>
       )}
 
-      <button style={s.newBtn} onClick={() => navigate("/new")}>
-        <span style={{ fontSize: 20 }}>＋</span> 새 일정 만들기
-      </button>
-      <div style={s.newHint}>여행 · 데이트 · 약속 — 뭐든 같이 짜요</div>
+      {plans !== null && plans.length > 0 && (
+        <button style={s.fab} title="새 일정 만들기" onClick={() => navigate("/new")}>＋</button>
+      )}
     </div>
   );
 }

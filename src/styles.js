@@ -179,6 +179,13 @@ export const s = {
             background: C.ink, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6 },
   newHint: { textAlign: "center", fontSize: 12, color: C.muted, marginTop: 8 },
+  // 일정이 쌓여서 목록이 길어져도 "새 일정" 버튼이 아래로 밀려 안 보이지 않게, 화면에 고정된
+  // 원형 버튼(FAB)으로 항상 떠 있게 함 — 탭바 바로 위, 화면(app) 기준 절대 위치라
+  // 안쪽 리스트가 스크롤돼도 같이 안 움직인다.
+  fab: { position: "absolute", right: 16, bottom: "calc(76px + env(safe-area-inset-bottom))", zIndex: 300,
+         width: 54, height: 54, borderRadius: "50%", border: "none", background: C.orange, color: "#fff",
+         fontSize: 26, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center",
+         justifyContent: "center", boxShadow: "0 6px 16px rgba(232,134,58,.45)", lineHeight: 1 },
   backBtn: { border: "none", background: "transparent", color: C.muted, fontSize: 14, fontWeight: 700,
              cursor: "pointer", padding: "0 0 10px", marginLeft: -2 },
   myPageDivider: { height: 1, background: C.goldLight, opacity: 0.5, margin: "28px 0 22px" },

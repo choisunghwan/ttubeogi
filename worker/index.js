@@ -30,6 +30,36 @@ app.get("/api/plans/:id/ws", (c) => {
 // Worker가 항상 먼저 요청을 받기 때문에(엣지의 "정적 자산 우선" 라우팅은 배포 후에만 자동 적용),
 // 우리가 명시적으로 넘겨줘야 wrangler.jsonc의 not_found_handling: "single-page-application"이
 // 동작해서 /p/:id를 새로고침해도 index.html로 폴백된다.
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// 카카오톡 등에 /p/:id 링크를 공유하면 크롤러가 이 HTML을 그대로 읽어서 카드 미리보기를 만든다
+// (크롤러는 JS를 실행 안 하므로 index.html의 og:태그가 정적으로 그 일정 정보를 담고 있어야 함).
+// index.html에 있는 기본 og:태그 값을 그 일정의 제목/날짜로 문자열 치환해서 내려준다.
+app.get("/p/:id", async (c) => {
+  const id = c.req.param("id");
+  const assetRes = await c.env.ASSETS.fetch(c.req.raw);
+  const plan = await c.env.DB.prepare("SELECT kind, title, start_date, end_date, region FROM plans WHERE id = ?").bind(id).first();
+  if (!plan) return assetRes;
+
+  const fmtMD = (iso) => {
+    const d = new Date(iso + "T00:00:00");
+    return `${d.getMonth() + 1}.${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const dateLabel = plan.start_date === plan.end_date ? fmtMD(plan.start_date) : `${fmtMD(plan.start_date)} - ${fmtMD(plan.end_date)}`;
+  const title = escapeHtml(`${plan.kind} · ${plan.title}`);
+  const desc = escapeHtml(`${dateLabel}${plan.region ? ` · ${plan.region}` : ""} — 뚜버기에서 같이 일정을 만들어보세요!`);
+  const url = c.req.url.split("?")[0];
+
+  const html = (await assetRes.text())
+    .replaceAll('content="뚜버기 — 여행·데이트·약속을 함께 만드는 실시간 일정"', `content="${title}"`)
+    .replaceAll('content="여행·데이트·약속을 링크 하나로 같이 만드는 실시간 협업 일정 앱"', `content="${desc}"`)
+    .replace('content="https://ttubeogi.ttubeogi.workers.dev/"', `content="${url}"`);
+
+  return new Response(html, { headers: assetRes.headers });
+});
+
 app.get("*", (c) => c.env.ASSETS.fetch(c.req.raw));
 
 export default app;
