@@ -10,6 +10,20 @@ import { buildPlansICS, downloadICS } from "../lib/ics";
 import { formatWhen } from "../utils";
 
 const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
+const SUNDAY_RED = "#c0392b";
+const SATURDAY_BLUE = "#3a6ea5";
+// 양력 고정 공휴일만 — 설날/추석/부처님오신날처럼 매년 날짜가 바뀌는 음력 공휴일은
+// 정확한 변환표 없이 하드코딩하면 틀릴 수 있어서 일부러 뺐다(틀린 날짜 표시가 더 나쁨).
+const FIXED_HOLIDAYS = new Set([
+  "01-01", // 신정
+  "03-01", // 삼일절
+  "05-05", // 어린이날
+  "06-06", // 현충일
+  "08-15", // 광복절
+  "10-03", // 개천절
+  "10-09", // 한글날
+  "12-25", // 크리스마스
+]);
 function pad(n) { return String(n).padStart(2, "0"); }
 function toKey(y, m, d) { return `${y}-${pad(m + 1)}-${pad(d)}`; } // m: 0-indexed
 
@@ -95,7 +109,7 @@ export default function CalendarScreen() {
 
       <div style={s.calGrid}>
         {WEEKDAY.map((w, i) => (
-          <div key={w} style={{ ...s.calWeekday, color: i === 0 ? "#c0392b" : i === 6 ? C.gold : C.muted }}>{w}</div>
+          <div key={w} style={{ ...s.calWeekday, color: i === 0 ? SUNDAY_RED : i === 6 ? SATURDAY_BLUE : C.muted }}>{w}</div>
         ))}
         {cells.map((d, i) => {
           if (d === null) return <div key={`empty-${i}`} />;
@@ -103,10 +117,16 @@ export default function CalendarScreen() {
           const dayPlans = plansByDate.get(key) || [];
           const isToday = key === todayKey;
           const isSelected = key === selectedKey;
+          // cells 배열은 앞쪽에 빈 칸(padding)을 넣어 1일의 요일에 맞춘 뒤 순서대로 채워서,
+          // 인덱스를 7로 나눈 나머지가 그대로 요일(0=일 ~ 6=토)이 된다.
+          const weekday = i % 7;
+          const isHoliday = FIXED_HOLIDAYS.has(`${pad(m + 1)}-${pad(d)}`);
+          const dateColor = (weekday === 0 || isHoliday) ? SUNDAY_RED : weekday === 6 ? SATURDAY_BLUE : C.ink;
           return (
             <div key={key} style={s.calCellWrap} onClick={() => dayPlans.length > 0 && setSelectedKey(isSelected ? null : key)}>
               <div style={{
                 ...s.calCell,
+                color: dateColor,
                 ...(isToday ? s.calCellToday : {}),
                 ...(isSelected ? s.calCellSelected : {}),
                 cursor: dayPlans.length > 0 ? "pointer" : "default",

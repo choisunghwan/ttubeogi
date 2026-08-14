@@ -247,6 +247,9 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
     }).addTo(layerGroupRef.current);
     walkerMarkerRef.current = walker;
 
+    // 좌표가 하나도 없을 땐 지도 컨테이너를 display:none으로 숨겨두므로, 방금 다시 보이게 된
+    // 시점엔 Leaflet이 갖고 있던 크기 캐시가 낡아있다 — fitBounds 전에 다시 재보 게 함.
+    map.invalidateSize();
     map.fitBounds(latlngs.length > 1 ? latlngs : [latlngs[0], latlngs[0]], { padding: [30, 30], maxZoom: 16 });
 
     if (geocoded.length > 1) {
@@ -324,7 +327,10 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
         </div>
       )}
 
-      <div style={{ ...s.tripMapFrame, ...(geocoded.length === 0 ? { height: 140, marginTop: 12 } : {}) }}>
+      {/* 찍을 위치가 없을 때도 지도 컨테이너 자체는 계속 렌더링해둔다(Leaflet 인스턴스를 유지해야
+          나중에 좌표가 생겼을 때 새로 만들 필요 없이 바로 마커가 붙는다) — 대신 display:none으로
+          화면에서만 숨겨서, 찍을 것도 없는데 빈 지도 미리보기가 어정쩡하게 보이던 문제를 없앤다. */}
+      <div style={{ ...s.tripMapFrame, ...(geocoded.length === 0 ? { display: "none" } : {}) }}>
         <div ref={containerRef} style={{ width: "100%", height: "100%" }} />
       </div>
 
