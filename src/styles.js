@@ -255,6 +255,11 @@ export const s = {
                       borderRadius: 8, cursor: "pointer", fontSize: 13 },
   dragHandle: { border: "none", background: "transparent", color: C.muted, fontSize: 18, lineHeight: 1,
                 cursor: "grab", padding: "0 4px 0 0", flexShrink: 0, touchAction: "none" },
+  // "티켓" 탭 카드 — ItemRow와 비슷하지만 드래그 핸들 없는 보기 전용.
+  ticketCardMini: { position: "relative", display: "flex", alignItems: "flex-start", gap: 12, background: "#fff",
+                     borderRadius: 14, padding: "12px 14px", marginBottom: 10, border: `1px solid ${C.goldLight}`,
+                     boxShadow: "0 2px 8px rgba(0,0,0,.04)" },
+  ticketCardMiniDay: { fontSize: 11, color: C.gold, fontWeight: 700, marginBottom: 2 },
   addItemBtn: { width: "100%", marginTop: 4, marginBottom: 18, padding: "13px 0", borderRadius: 12,
                 border: `1.5px dashed ${C.orange}`, background: "#fff", color: C.orangeDeep,
                 fontSize: 14.5, fontWeight: 800, cursor: "pointer" },

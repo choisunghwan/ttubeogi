@@ -12,12 +12,12 @@ export const C = {
 export const SERIF_KO = "'Noto Serif KR', serif";
 export const SERIF_EN = "'Playfair Display', serif";
 
-// 일정 종류(kind)별 홈 카드 이모지
-export const KIND_EMOJI = { 여행: "✈️", 데이트: "💕", 약속: "🍺" };
-
 export const TYPES = {
-  명소: { emoji: "📍", color: "#e8863a" }, 식당: { emoji: "🍽️", color: "#d9534f" },
+  집: { emoji: "🏠", color: "#a0632f" },
+  명소: { emoji: "⭐", color: "#e8863a" }, 식당: { emoji: "🍽️", color: "#d9534f" },
   카페: { emoji: "☕", color: "#8a6d3b" }, 쇼핑: { emoji: "🛍️", color: "#c0568f" },
   숙소: { emoji: "🏨", color: "#4a6fa5" }, 이동: { emoji: "🚇", color: "#5b8c7b" },
-  항공: { emoji: "✈️", color: "#3a6ea5" }, 기타: { emoji: "📌", color: "#8a8170" },
+  항공: { emoji: "✈️", color: "#3a6ea5" },
+  도서관: { emoji: "📚", color: "#7d6b52" }, 영화관: { emoji: "🎬", color: "#5c4a8a" },
+  기타: { emoji: "📌", color: "#8a8170" },
 };

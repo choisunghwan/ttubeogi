@@ -79,6 +79,26 @@ export function MedalIcon({ size = 14, color = "currentColor" }) {
   );
 }
 
+export function ListIcon({ size = 15, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="4.5" cy="6" r="1.3" fill={color} />
+      <circle cx="4.5" cy="12" r="1.3" fill={color} />
+      <circle cx="4.5" cy="18" r="1.3" fill={color} />
+      <path d="M9 6h11M9 12h11M9 18h11" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function MapPinIcon({ size = 15, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M12 21.5s7-6.7 7-12.3A7 7 0 105 9.2c0 5.6 7 12.3 7 12.3z" stroke={color} strokeWidth="1.7" strokeLinejoin="round" />
+      <circle cx="12" cy="9" r="2.6" fill={color} />
+    </svg>
+  );
+}
+
 export function KakaoDotIcon({ size = 14 }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

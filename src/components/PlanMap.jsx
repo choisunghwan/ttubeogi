@@ -106,16 +106,18 @@ function planeIconHtml({ step, facing, size = 40 }) {
 
 // 이동수단별 속도(프레임당 전진하는 경로점 개수)와 아이콘. 도보 기준(3)에서 빠른 교통수단일수록
 // 배수로 빠르게 — "비행기인데 걷는 속도로 가면 이상하다"는 피드백으로 추가.
+// 자차/항공 모두 "너무 빨라서 캐릭터가 안 보인다"는 피드백으로 여러 차례 더 낮춤 — 보는
+// 재미가 있으려면 최소 프레임 수가 확보돼야 한다는 게 핵심.
 const MOVE_STYLE = {
   도보: { stepPerFrame: 3, icon: walkerIconHtml, drawShadow: true },
-  지하철: { stepPerFrame: 9, icon: trainIconHtml },
-  트램: { stepPerFrame: 7, icon: trainIconHtml },
-  버스: { stepPerFrame: 7, icon: busIconHtml },
-  택시: { stepPerFrame: 10, icon: carIconHtml },
-  자차: { stepPerFrame: 10, icon: carIconHtml },
-  // 항공은 직선 고정 48포인트 경로(OSRM 안 씀) — "더 늦춰도 된다"는 피드백으로 stepPerFrame을
-  // 더 낮춰서(약 25프레임, ~400ms) 확실히 눈에 보이게 날아가게 함.
-  항공: { stepPerFrame: 2, icon: planeIconHtml },
+  지하철: { stepPerFrame: 7, icon: trainIconHtml },
+  트램: { stepPerFrame: 6, icon: trainIconHtml },
+  버스: { stepPerFrame: 6, icon: busIconHtml },
+  택시: { stepPerFrame: 5, icon: carIconHtml },
+  자차: { stepPerFrame: 5, icon: carIconHtml },
+  // 항공은 직선 고정 48포인트 경로(OSRM 안 씀) — 1은 한 프레임에 점 하나씩만 전진하는
+  // 최대 저속(이 경로 방식에서 가능한 가장 느린 속도)으로, 약 49프레임(~800ms) 동안 보임.
+  항공: { stepPerFrame: 1, icon: planeIconHtml },
   기타: { stepPerFrame: 3, icon: walkerIconHtml },
 };
 function moveStyleFor(move) {

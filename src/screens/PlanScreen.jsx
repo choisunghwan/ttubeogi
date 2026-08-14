@@ -9,6 +9,8 @@ import ItemFormModal from "../components/ItemFormModal";
 import EditPlanModal from "../components/EditPlanModal";
 import PlanMap from "../components/PlanMap";
 import ItemRow from "../components/ItemRow";
+import TicketCard from "../components/TicketCard";
+import { ListIcon, MapPinIcon, TicketIcon } from "../components/Icons";
 import { getPlan, joinPlan, deleteItem, reorderItems } from "../lib/api";
 import { getMemberId, rememberPlan } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
@@ -146,6 +148,14 @@ export default function PlanScreen() {
   const selectedDay = plan.days.find((d) => d.id === selectedDayId) || plan.days[0];
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
+  // "티켓" 탭 — 매번 날짜별로 뒤져서 찾지 않아도 항공편/바우처/첨부파일 있는 항목만
+  // 전체 일정(모든 날짜)에서 모아 한 번에 보여준다.
+  const ticketItems = plan.days.flatMap((d, i) =>
+    d.items
+      .filter((it) => it.flightNo || it.voucher || it.attachmentName)
+      .map((it) => ({ item: it, dayLabel: plan.days.length > 1 ? `${i + 1}일차 · ${d.date.slice(5).replace("-", "/")}` : d.date.slice(5).replace("-", "/") }))
+  );
+
   function copyShareLink() {
     navigator.clipboard?.writeText(shareUrl).then(() => {
       setCopied(true);
@@ -228,14 +238,42 @@ export default function PlanScreen() {
       )}
 
       {selectedDay && (
-        <div style={{ ...s.pickerGrid, marginBottom: 14 }}>
-          <button style={{ ...s.pickerBtn, ...(viewTab === "list" ? s.pickerBtnOn : {}) }} onClick={() => setViewTab("list")}>📋 일정</button>
-          <button style={{ ...s.pickerBtn, ...(viewTab === "map" ? s.pickerBtnOn : {}) }} onClick={() => setViewTab("map")}>🗺️ 지도</button>
+        <div style={{ ...s.pickerGrid, marginBottom: 14, flexWrap: "nowrap" }}>
+          <button style={{ ...s.pickerBtn, flex: 1, padding: "10px 4px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, ...(viewTab === "list" ? s.pickerBtnOn : {}) }} onClick={() => setViewTab("list")}>
+            <ListIcon size={13} color={viewTab === "list" ? C.orangeDeep : C.ink} /> 일정
+          </button>
+          <button style={{ ...s.pickerBtn, flex: 1, padding: "10px 4px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, ...(viewTab === "map" ? s.pickerBtnOn : {}) }} onClick={() => setViewTab("map")}>
+            <MapPinIcon size={13} color={viewTab === "map" ? C.orangeDeep : C.ink} /> 지도
+          </button>
+          <button style={{ ...s.pickerBtn, flex: 1, padding: "10px 4px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, ...(viewTab === "tickets" ? s.pickerBtnOn : {}) }} onClick={() => setViewTab("tickets")}>
+            <TicketIcon size={13} color={viewTab === "tickets" ? C.orangeDeep : C.ink} /> 티켓{ticketItems.length > 0 ? ` ${ticketItems.length}` : ""}
+          </button>
         </div>
       )}
 
       {selectedDay && viewTab === "map" && (
         <PlanMap items={selectedDay.items} onGoToList={() => setViewTab("list")} onSelectItem={goToItem} />
+      )}
+
+      {viewTab === "tickets" && (
+        <>
+          {ticketItems.length === 0 ? (
+            <div style={s.emptyState}>
+              항공권·기차표·바우처를 첨부한 항목이 아직 없어요.<br />
+              항목 수정에서 파일을 첨부하면 여기 모여요.
+            </div>
+          ) : (
+            ticketItems.map(({ item, dayLabel }) => (
+              <TicketCard
+                key={item.id}
+                item={item}
+                dayLabel={dayLabel}
+                planId={planId}
+                onEdit={() => setModalState({ item })}
+              />
+            ))
+          )}
+        </>
       )}
 
       {selectedDay && viewTab === "list" && (
