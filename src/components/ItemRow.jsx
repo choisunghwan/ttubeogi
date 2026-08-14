@@ -78,6 +78,7 @@ export default function ItemRow({ item, creator, planId, dayDate, planTitle, hig
             )}
           </div>
         )}
+        {item.memo && <div style={s.itemRowMemo}>{item.memo}</div>}
       </div>
       <div style={s.itemRowActions}>
         <button style={s.itemRowActionBtn} title="캘린더에 담기" onClick={handleAddToCalendar}><CalendarIcon size={15} color={C.ink} /></button>

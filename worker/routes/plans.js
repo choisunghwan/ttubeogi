@@ -169,7 +169,7 @@ app.get("/:id", async (c) => {
         lng: it.lng,
         mapLink: it.map_link,
         move: it.move,
-        detail: it.detail,
+        memo: it.detail,
         flightNo: it.flight_no,
         voucher: it.voucher,
         attachmentName: it.attachment_name,
@@ -272,7 +272,7 @@ app.post("/:id/members", async (c) => {
 app.post("/:id/items", async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json().catch(() => ({}));
-  const { dayId, type, time, name, query, lat, lng, mapLink, move, flightNo, voucher, createdBy } = body;
+  const { dayId, type, time, name, query, lat, lng, mapLink, move, flightNo, voucher, memo, createdBy } = body;
 
   if (!name?.trim()) return c.json({ error: "name은 필수입니다" }, 400);
   if (!type) return c.json({ error: "type은 필수입니다" }, 400);
@@ -292,9 +292,9 @@ app.post("/:id/items", async (c) => {
   );
   stmts.push(
     c.env.DB.prepare(
-      `INSERT INTO items (id, day_id, type, time, name, query, lat, lng, map_link, move, flight_no, voucher, item_status, created_by, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`
-    ).bind(itemId, dayId, type, time || null, name.trim(), query || null, lat ?? null, lng ?? null, mapLink || null, move || null, flightNo || null, voucher || null, createdBy || null, insertAt)
+      `INSERT INTO items (id, day_id, type, time, name, query, lat, lng, map_link, move, flight_no, voucher, detail, item_status, created_by, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`
+    ).bind(itemId, dayId, type, time || null, name.trim(), query || null, lat ?? null, lng ?? null, mapLink || null, move || null, flightNo || null, voucher || null, memo || null, createdBy || null, insertAt)
   );
   await c.env.DB.batch(stmts);
 
@@ -303,7 +303,7 @@ app.post("/:id/items", async (c) => {
     id: itemId, dayId, type, time: time || null, name: name.trim(), query: query || null,
     lat: lat ?? null, lng: lng ?? null,
     mapLink: mapLink || null, move: move || null, flightNo: flightNo || null, voucher: voucher || null,
-    itemStatus: "confirmed", createdBy: createdBy || null,
+    memo: memo || null, itemStatus: "confirmed", createdBy: createdBy || null,
   }, 201);
 });
 
@@ -334,7 +334,8 @@ app.patch("/:id/days/:dayId/reorder", async (c) => {
 // PATCH /api/plans/:id/items/:itemId — 부분 수정
 const PATCHABLE_FIELDS = {
   type: "type", time: "time", name: "name", query: "query", lat: "lat", lng: "lng",
-  mapLink: "map_link", move: "move", flightNo: "flight_no", voucher: "voucher", itemStatus: "item_status",
+  mapLink: "map_link", move: "move", flightNo: "flight_no", voucher: "voucher", memo: "detail",
+  itemStatus: "item_status",
 };
 app.patch("/:id/items/:itemId", async (c) => {
   const { id, itemId } = c.req.param();

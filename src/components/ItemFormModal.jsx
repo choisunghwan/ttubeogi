@@ -39,6 +39,7 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
   const [move, setMove] = useState(item?.move || "도보");
   const [flightNo, setFlightNo] = useState(item?.flightNo || "");
   const [voucher, setVoucher] = useState(item?.voucher || "");
+  const [memo, setMemo] = useState(item?.memo || "");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -128,7 +129,7 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
     setSubmitting(true);
     setError(null);
     const geo = coordsValid ? { lat: coords.lat, lng: coords.lng } : { lat: null, lng: null };
-    const extra = { flightNo: flightNo.trim() || null, voucher: voucher.trim() || null };
+    const extra = { flightNo: flightNo.trim() || null, voucher: voucher.trim() || null, memo: memo.trim() || null };
     try {
       let itemId = item?.id;
       if (isEdit) {
@@ -270,6 +271,10 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
           )}
           <div style={s.formLabel}>바우처·예약번호 (선택)</div>
           <input style={s.formInput} value={voucher} onChange={(e) => setVoucher(e.target.value)} placeholder="예: 예약번호, 확인코드" />
+
+          <div style={s.formLabel}>메모 (선택)</div>
+          <textarea style={s.formTextarea} value={memo} onChange={(e) => setMemo(e.target.value)}
+            placeholder="예: 예약 시 창가 자리 요청함, 현금 결제만 가능" rows={3} />
 
           <div style={s.formLabel}>항공권·기차표·바우처 파일 (선택)</div>
           {attachmentInfo ? (

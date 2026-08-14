@@ -36,6 +36,38 @@ async function searchNominatimMulti(query, limit) {
   }));
 }
 
+function hasHangul(text) {
+  return /[가-힣]/.test(text);
+}
+
+// 키 없이 쓸 수 있는 구글 번역 비공식 엔드포인트 — 짧은 문자열 하나 번역하는 정도의 가벼운
+// 용도라 무료로 충분함. 실패해도(네트워크 오류 등) null 반환해서 원문을 그대로 쓰게 한다.
+async function translateToKorean(text) {
+  if (!text) return null;
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ko&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const joined = data[0]?.map((chunk) => chunk[0]).join("") || null;
+    return joined && joined !== text ? joined : null;
+  } catch {
+    return null;
+  }
+}
+
+// 해외 지명은 Nominatim이 한자/현지어 표기로만 줄 때가 많아서(예: "上海迪士尼樂園") 사용자가
+// 자기가 찾던 곳이 맞는지 확인하기 어렵다 — 한글이 하나도 없는 결과만 이름을 번역해서
+// "한글 번역 (원문)" 형태로 보여준다. 주소는 현지어/한자가 섞인 문자열이라 통번역이 오히려
+// 더 헷갈리게 만들어서(고유명사 오역, 이미 한글인 행정구역명까지 다시 깨짐) 그대로 둔다.
+async function translateForeignResults(results) {
+  return Promise.all(results.map(async (r) => {
+    if (hasHangul(r.label)) return r;
+    const translatedLabel = await translateToKorean(r.label);
+    return translatedLabel ? { ...r, label: `${translatedLabel} (${r.label})` } : r;
+  }));
+}
+
 function dedupe(results) {
   const seen = new Set();
   return results.filter((r) => {
@@ -53,10 +85,11 @@ app.get("/", async (c) => {
   if (!q?.trim()) return c.json({ error: "q는 필수입니다" }, 400);
   const query = q.trim();
 
-  const [kakaoResults, nominatimResults] = await Promise.all([
+  const [kakaoResults, nominatimResultsRaw] = await Promise.all([
     searchKakaoMulti(query, c.env.KAKAO_REST_API_KEY, 5),
     searchNominatimMulti(query, 3),
   ]);
+  const nominatimResults = await translateForeignResults(nominatimResultsRaw);
   const results = dedupe([...kakaoResults, ...nominatimResults]).slice(0, 7);
   if (results.length === 0) return c.json({ error: "검색 결과가 없습니다" }, 404);
   return c.json({ results });

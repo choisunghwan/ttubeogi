@@ -196,6 +196,9 @@ export const s = {
   // "탭하면 사이즈가 깨진다"는 증상으로 보인다 — 16 유지 필수.
   formInput: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #e2dac6",
                fontSize: 16, fontFamily: "inherit", background: "#fff", color: C.ink, boxSizing: "border-box" },
+  formTextarea: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #e2dac6",
+                  fontSize: 16, fontFamily: "inherit", background: "#fff", color: C.ink, boxSizing: "border-box",
+                  resize: "vertical", lineHeight: 1.5 },
   // flexWrap: 네이티브 date/select 컨트롤은 CSS로 강제로 줄여도 실제 렌더링 폭이 그대로인 경우가 있어서
   // (특히 Safari) 안 들어가면 옆으로 삐져나오는 대신 줄바꿈되게 해서 화면 밖으로 안 나가게 방어.
   formRow: { display: "flex", gap: 10, flexWrap: "wrap" },
@@ -271,6 +274,8 @@ export const s = {
   itemRowTime: { fontSize: 11.5, color: C.muted, fontWeight: 700 },
   itemRowName: { fontSize: 15, fontWeight: 800 },
   itemRowMeta: { fontSize: 12, color: C.muted, marginTop: 2 },
+  itemRowMemo: { fontSize: 12.5, color: "#7a715f", marginTop: 4, padding: "6px 9px", background: "#f7f2e6",
+                 borderRadius: 8, lineHeight: 1.4, whiteSpace: "pre-wrap", wordBreak: "break-word" },
   itemRowThumb: { width: 28, height: 28, borderRadius: 7, objectFit: "cover", cursor: "pointer",
                    border: `1px solid ${C.goldLight}`, verticalAlign: "middle" },
   itemRowActions: { display: "flex", gap: 6, flexShrink: 0 },
