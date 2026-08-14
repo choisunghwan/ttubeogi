@@ -6,7 +6,11 @@ async function request(path, options) {
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `요청 실패 (${res.status})`);
+    const err = new Error(body.error || `요청 실패 (${res.status})`);
+    // needsForce처럼 에러 메시지 외에 추가 정보를 실어보내는 응답(예: 기간 축소 시 항목 삭제 확인)이
+    // 있어서, 호출부가 필요하면 err에서 꺼내 쓸 수 있게 그대로 붙여준다.
+    Object.assign(err, body);
+    throw err;
   }
   return res.status === 204 ? null : res.json();
 }

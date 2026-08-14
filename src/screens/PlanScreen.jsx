@@ -237,6 +237,7 @@ export default function PlanScreen() {
         </div>
       </div>
 
+      <div style={s.shareHint}>🔗 이 주소를 공유해서 함께 실시간으로 일정을 짜보세요</div>
       <div style={s.shareBar}>
         <span style={s.shareLink}>{shareUrl}</span>
         {typeof navigator !== "undefined" && navigator.share && (

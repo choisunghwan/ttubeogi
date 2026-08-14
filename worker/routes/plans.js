@@ -198,7 +198,7 @@ app.get("/:id", async (c) => {
 const PLAN_PATCHABLE_FIELDS = { kind: "kind", title: "title", startDate: "start_date", endDate: "end_date", region: "region" };
 app.patch("/:id", async (c) => {
   const id = c.req.param("id");
-  const plan = await c.env.DB.prepare("SELECT id FROM plans WHERE id = ?").bind(id).first();
+  const plan = await c.env.DB.prepare("SELECT * FROM plans WHERE id = ?").bind(id).first();
   if (!plan) return c.json({ error: "일정을 찾을 수 없습니다" }, 404);
 
   const body = await c.req.json().catch(() => ({}));
@@ -215,8 +215,55 @@ app.patch("/:id", async (c) => {
   }
   if (sets.length === 0) return c.json({ error: "수정할 필드가 없습니다" }, 400);
 
+  const stmts = [];
+
+  // 기간(시작/종료일)이 바뀌면 실제 날짜(days) 행도 그만큼 늘리거나 줄여야 한다 — 예전엔 plans
+  // 테이블의 start_date/end_date만 바뀌고 days는 그대로라 "3일차"를 추가해도 안 나타나던 버그가 있었음.
+  if ("startDate" in body || "endDate" in body) {
+    const finalStart = body.startDate ?? plan.start_date;
+    const finalEnd = body.endDate ?? plan.end_date;
+    const newDates = dateRange(finalStart, finalEnd);
+    const newDateSet = new Set(newDates);
+
+    const existingDays = (await c.env.DB.prepare("SELECT id, date FROM days WHERE plan_id = ?").bind(id).all()).results;
+    const existingByDate = new Map(existingDays.map((d) => [d.date, d]));
+    const daysToRemove = existingDays.filter((d) => !newDateSet.has(d.date));
+
+    if (daysToRemove.length > 0 && !body.force) {
+      const removeIds = daysToRemove.map((d) => d.id);
+      const placeholders = removeIds.map(() => "?").join(",");
+      const itemCountRow = await c.env.DB.prepare(
+        `SELECT COUNT(*) AS n FROM items WHERE day_id IN (${placeholders})`
+      ).bind(...removeIds).first();
+      if (itemCountRow.n > 0) {
+        return c.json({
+          error: `기간을 줄이면 ${daysToRemove.length}일치 일정에 있는 항목 ${itemCountRow.n}개가 같이 삭제돼요. 그래도 계속할까요?`,
+          needsForce: true,
+          affectedItemCount: itemCountRow.n,
+        }, 409);
+      }
+    }
+
+    for (const d of daysToRemove) {
+      stmts.push(c.env.DB.prepare("DELETE FROM days WHERE id = ?").bind(d.id));
+    }
+    newDates.forEach((date, i) => {
+      const existing = existingByDate.get(date);
+      if (existing) {
+        stmts.push(c.env.DB.prepare("UPDATE days SET sort_order = ? WHERE id = ?").bind(i, existing.id));
+      } else {
+        stmts.push(
+          c.env.DB.prepare("INSERT INTO days (id, plan_id, date, sort_order) VALUES (?, ?, ?, ?)")
+            .bind(newId("day"), id, date, i)
+        );
+      }
+    });
+  }
+
   values.push(id);
-  await c.env.DB.prepare(`UPDATE plans SET ${sets.join(", ")} WHERE id = ?`).bind(...values).run();
+  stmts.push(c.env.DB.prepare(`UPDATE plans SET ${sets.join(", ")} WHERE id = ?`).bind(...values));
+  await c.env.DB.batch(stmts);
+
   c.executionCtx.waitUntil(notifyRoom(c.env, id, "plan.updated"));
   const updated = await c.env.DB.prepare("SELECT * FROM plans WHERE id = ?").bind(id).first();
   return c.json({

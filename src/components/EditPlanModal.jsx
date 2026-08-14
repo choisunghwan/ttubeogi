@@ -23,14 +23,28 @@ export default function EditPlanModal({ planId, plan, onClose, onSaved, onDelete
     if (!canSubmit) return;
     setSubmitting(true);
     setError(null);
+    const patch = {
+      kind, title: title.trim(), startDate,
+      endDate: kind === "여행" ? (endDate || startDate) : startDate,
+      region: region.trim() || null,
+    };
     try {
-      await updatePlan(planId, {
-        kind, title: title.trim(), startDate,
-        endDate: kind === "여행" ? (endDate || startDate) : startDate,
-        region: region.trim() || null,
-      });
+      await updatePlan(planId, patch);
       onSaved();
     } catch (err) {
+      // 기간을 줄여서 그 날짜에 있던 항목이 같이 삭제되는 경우 — 서버가 바로 지우지 않고
+      // 먼저 확인을 요청한다(needsForce). 사용자가 동의하면 force:true로 다시 보낸다.
+      if (err.needsForce && window.confirm(err.message)) {
+        try {
+          await updatePlan(planId, { ...patch, force: true });
+          onSaved();
+          return;
+        } catch (err2) {
+          setError(err2.message);
+          setSubmitting(false);
+          return;
+        }
+      }
       setError(err.message);
       setSubmitting(false);
     }

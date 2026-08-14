@@ -248,6 +248,7 @@ export const s = {
   emptyState: { textAlign: "center", padding: "40px 16px", color: C.muted, fontSize: 14 },
 
   // 공유 링크 바
+  shareHint: { fontSize: 12.5, color: C.orangeDeep, fontWeight: 700, marginBottom: 6 },
   shareBar: { display: "flex", alignItems: "center", gap: 8, background: "#fff", border: "1px dashed #ddd4c2",
               borderRadius: 12, padding: "10px 12px", marginBottom: 14 },
   shareLink: { flex: 1, minWidth: 0, fontSize: 12.5, color: C.muted, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" },
