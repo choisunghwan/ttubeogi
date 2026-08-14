@@ -93,6 +93,12 @@ export default function MyPageScreen() {
           {error && <div style={s.formError}>{error}</div>}
           <div style={s.formHint}>여기서 바꾸면 카카오 닉네임이 나중에 바뀌어도 이 이름을 계속 써요.</div>
 
+          {me.isAdmin && (
+            <button style={{ ...s.newBtn, marginTop: 24 }} onClick={() => navigate("/admin")}>
+              🛠 관리자 — 회원 목록
+            </button>
+          )}
+
           <button style={{ ...s.backBtn, marginTop: 28, color: "#c0392b", fontWeight: 800 }} onClick={handleLogout}>
             로그아웃
           </button>

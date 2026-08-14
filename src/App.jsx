@@ -7,6 +7,7 @@ import CalendarScreen from "./screens/CalendarScreen";
 import CreatePlanScreen from "./screens/CreatePlanScreen";
 import PlanScreen from "./screens/PlanScreen";
 import MyPageScreen from "./screens/MyPageScreen";
+import AdminScreen from "./screens/AdminScreen";
 import { PlaneBadgeIcon, CalendarIcon } from "./components/Icons";
 
 // 하단 탭바는 홈/캘린더 두 화면에서만 보인다 — 일정 만들기·일정 상세는 자체 상단 흐름을 쓴다.
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/new" element={<CreatePlanScreen />} />
           <Route path="/p/:planId" element={<PlanScreen />} />
           <Route path="/me" element={<MyPageScreen />} />
+          <Route path="/admin" element={<AdminScreen />} />
         </Routes>
       </div>
       {showTabBar && <TabBar />}

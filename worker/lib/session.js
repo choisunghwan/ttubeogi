@@ -56,6 +56,7 @@ export function randomToken(byteLen = 16) {
 export async function getSessionUser(c) {
   const userId = await verifySession(getCookie(c, "ttubeogi_session"), c.env.SESSION_SECRET);
   if (!userId) return null;
-  const user = await c.env.DB.prepare("SELECT id, nickname FROM users WHERE id = ?").bind(userId).first();
-  return user || null;
+  const user = await c.env.DB.prepare("SELECT id, nickname, is_admin FROM users WHERE id = ?").bind(userId).first();
+  if (!user) return null;
+  return { id: user.id, nickname: user.nickname, isAdmin: Boolean(user.is_admin) };
 }

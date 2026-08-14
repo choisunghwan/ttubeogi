@@ -11,6 +11,10 @@ async function request(path, options) {
   return res.status === 204 ? null : res.json();
 }
 
+export function listAdminUsers() {
+  return request("/api/admin/users");
+}
+
 export function createPlan({ kind, title, startDate, endDate, region, creatorName }) {
   return request("/api/plans", {
     method: "POST",
