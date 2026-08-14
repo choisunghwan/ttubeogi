@@ -149,12 +149,18 @@ export default function PlanScreen() {
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
   // "티켓" 탭 — 매번 날짜별로 뒤져서 찾지 않아도 항공편/바우처/첨부파일 있는 항목만
-  // 전체 일정(모든 날짜)에서 모아 한 번에 보여준다.
-  const ticketItems = plan.days.flatMap((d, i) =>
-    d.items
-      .filter((it) => it.flightNo || it.voucher || it.attachmentName)
-      .map((it) => ({ item: it, dayLabel: plan.days.length > 1 ? `${i + 1}일차 · ${d.date.slice(5).replace("-", "/")}` : d.date.slice(5).replace("-", "/") }))
+  // 전체 일정(모든 날짜)에서 모아 한 번에 보여준다. 항공편 항목은 실제 항공권처럼
+  // 출발/도착 구간으로 보여주려고, 전체 일정을 순서대로 쭉 펼친 다음 "바로 다음 항목"을
+  // 도착지로 취급한다(항공=이 항목에서 다음 장소로 갈 때 비행기를 탄다는 의미라서 맞아떨어짐).
+  const flatItems = plan.days.flatMap((d, i) =>
+    d.items.map((it) => ({
+      ...it,
+      dayLabel: plan.days.length > 1 ? `${i + 1}일차 · ${d.date.slice(5).replace("-", "/")}` : d.date.slice(5).replace("-", "/"),
+    }))
   );
+  const ticketItems = flatItems
+    .map((it, idx) => ({ item: it, dayLabel: it.dayLabel, nextItem: flatItems[idx + 1] || null }))
+    .filter(({ item }) => item.flightNo || item.voucher || item.attachmentName);
 
   function copyShareLink() {
     navigator.clipboard?.writeText(shareUrl).then(() => {
@@ -263,12 +269,14 @@ export default function PlanScreen() {
               항목 수정에서 파일을 첨부하면 여기 모여요.
             </div>
           ) : (
-            ticketItems.map(({ item, dayLabel }) => (
+            ticketItems.map(({ item, dayLabel, nextItem }) => (
               <TicketCard
                 key={item.id}
                 item={item}
+                nextItem={nextItem}
                 dayLabel={dayLabel}
                 planId={planId}
+                isPast={plan.status === "past"}
                 onEdit={() => setModalState({ item })}
               />
             ))
