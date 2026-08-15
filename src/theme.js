@@ -5,7 +5,7 @@
 // :root/[data-theme] 규칙에서 정의된다(src/lib/theme.js 참고). 이렇게 해두면 이 두 파일을 보고
 // 그리는 styles.js의 수백 군데 스타일 객체를 하나도 안 건드리고 테마 전환이 된다.
 export const C = {
-  ink: "#3a2f24", paper: "#faf8f3", land: "#efe7d5", landStroke: "#d9cdb2",
+  ink: "var(--c-ink)", paper: "var(--c-paper)", land: "#efe7d5", landStroke: "#d9cdb2",
   orange: "var(--c-orange)", orangeDeep: "var(--c-orange-deep)", cream: "#fdf6e9", creamShade: "#f2e6cf",
   muted: "#a89f8c", water: "#cfe2e6", green: "#d5e3c8",
   routeDone: "#c2b8a3", member2: "#5b8c7b", member3: "#7a6cc4",
@@ -19,6 +19,7 @@ export const THEMES = [
   {
     id: "orange", label: "기본", desc: "따뜻한 테라코타",
     vars: {
+      "--c-paper": "#faf8f3", "--c-ink": "#3a2f24",
       "--c-orange": "#c97a42", "--c-orange-deep": "#a8592a",
       "--c-gold": "#b8934a", "--c-gold-light": "#d9bd80", "--c-gold-deep": "#8f6f34",
       "--c-shadow-upcoming": "rgba(201,122,66,.3)", "--c-shadow-hot": "rgba(184,147,74,.22)", "--c-shadow-fab": "rgba(168,89,42,.4)",
@@ -27,6 +28,7 @@ export const THEMES = [
   {
     id: "navy", label: "네이비", desc: "프라이빗 항공사 퍼스트클래스",
     vars: {
+      "--c-paper": "#f7f4ec", "--c-ink": "#1c2431",
       "--c-orange": "#2c4867", "--c-orange-deep": "#1e3550",
       "--c-gold": "#b8934a", "--c-gold-light": "#d9bd80", "--c-gold-deep": "#8f6f34",
       "--c-shadow-upcoming": "rgba(44,72,103,.3)", "--c-shadow-hot": "rgba(184,147,74,.22)", "--c-shadow-fab": "rgba(30,53,80,.4)",
@@ -35,6 +37,7 @@ export const THEMES = [
   {
     id: "bordeaux", label: "보르도", desc: "아시아나·에미레이트 퍼스트클래스",
     vars: {
+      "--c-paper": "#f8f3ee", "--c-ink": "#2b1a1c",
       "--c-orange": "#6e2230", "--c-orange-deep": "#57121d",
       "--c-gold": "#b8934a", "--c-gold-light": "#d9bd80", "--c-gold-deep": "#8f6f34",
       "--c-shadow-upcoming": "rgba(110,34,48,.3)", "--c-shadow-hot": "rgba(184,147,74,.22)", "--c-shadow-fab": "rgba(87,18,29,.4)",
@@ -43,6 +46,7 @@ export const THEMES = [
   {
     id: "ktx", label: "코레일", desc: "KTX·SRT 실제 차체 색",
     vars: {
+      "--c-paper": "#eef1f5", "--c-ink": "#1a2333",
       "--c-orange": "#0f3a7a", "--c-orange-deep": "#0a2c5e",
       "--c-gold": "#5c6a80", "--c-gold-light": "#aebbcf", "--c-gold-deep": "#3a5480",
       "--c-shadow-upcoming": "rgba(15,58,122,.3)", "--c-shadow-hot": "rgba(92,106,128,.22)", "--c-shadow-fab": "rgba(10,44,94,.4)",

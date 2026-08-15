@@ -90,7 +90,7 @@ export const s = {
   members: { display: "flex", alignItems: "center" },
   avatar: { width: 28, height: 28, borderRadius: "50%", color: "#fff", display: "flex",
             alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700,
-            marginLeft: -6, border: "2px solid #faf8f3" },
+            marginLeft: -6, border: `2px solid ${C.paper}` },
   liveDot: { width: 8, height: 8, borderRadius: "50%", background: C.member2, marginLeft: 6, animation: "pulse 1.6s infinite" },
   progressRow: { marginBottom: 12 },
   progressLabel: { fontSize: 12, color: "#8a8170", fontWeight: 600 },
