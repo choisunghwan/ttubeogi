@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { C } from "../theme";
+import { C, THEMES } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import { KakaoDotIcon } from "../components/Icons";
 import TravelMapSection from "../components/TravelMapSection";
 import { getMe, logout, updateNickname, KAKAO_LOGIN_URL } from "../lib/auth";
+import { getTheme, setTheme } from "../lib/theme";
 
 export default function MyPageScreen() {
   const navigate = useNavigate();
@@ -14,10 +15,16 @@ export default function MyPageScreen() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState(null);
+  const [themeId, setThemeId] = useState(() => getTheme());
 
   useEffect(() => {
     getMe().then((u) => { setMe(u); if (u) setNickname(u.nickname); });
   }, []);
+
+  function handlePickTheme(id) {
+    setThemeId(id);
+    setTheme(id);
+  }
 
   async function handleSave() {
     if (!nickname.trim() || nickname.trim() === me.nickname) return;
@@ -46,6 +53,25 @@ export default function MyPageScreen() {
       <button style={s.backBtn} onClick={() => navigate("/")}>◀ 홈</button>
       <div style={s.eyebrow}>MY PAGE</div>
       <h1 style={s.h1}>마이페이지</h1>
+
+      <div style={{ ...s.formLabel, marginTop: 22 }}>테마 색상</div>
+      <div style={s.themeSwatchRow}>
+        {THEMES.map((t) => {
+          const on = themeId === t.id;
+          return (
+            <button key={t.id} type="button" style={s.themeSwatchBtn} title={t.desc} onClick={() => handlePickTheme(t.id)}>
+              <div
+                style={{
+                  ...s.themeSwatchDot, ...(on ? s.themeSwatchDotOn : {}),
+                  background: `linear-gradient(135deg, ${t.vars["--c-orange"]}, ${t.vars["--c-gold"]})`,
+                }}
+              />
+              <span style={{ ...s.themeSwatchLabel, ...(on ? s.themeSwatchLabelOn : {}) }}>{t.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ ...s.formHint, marginBottom: 4 }}>이 기기에만 적용돼요 — 다른 사람 화면 색은 안 바뀌어요.</div>
 
       {me === undefined && <div style={s.emptyState}>불러오는 중…</div>}
 

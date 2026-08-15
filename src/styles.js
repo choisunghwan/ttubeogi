@@ -1,5 +1,14 @@
 // 데모(ttubeogi.jsx)의 거대한 style 객체 그대로. 간격·색·카드 스타일의 단일 출처.
-import { C, SERIF_KO, SERIF_EN } from "./theme";
+import { C, SERIF_KO, SERIF_EN, THEMES } from "./theme";
+
+// 테마별 CSS 변수 규칙을 생성 — :root에 기본(orange) 테마 값을 깔고, 그 아래 각 테마를
+// [data-theme="..."] 선택자로 덮어쓴다. <html data-theme="navy"> 처럼 속성만 바꾸면
+// 여기서 정의된 변수를 참조하는 앱 전체 스타일이 한 번에 바뀐다(src/lib/theme.js가 속성을 다룸).
+const defaultTheme = THEMES[0];
+const themeCss = THEMES.map((t) => {
+  const decls = Object.entries(t.vars).map(([k, v]) => `${k}: ${v};`).join(" ");
+  return t.id === defaultTheme.id ? `:root { ${decls} }` : `:root[data-theme="${t.id}"] { ${decls} }`;
+}).join("\n");
 
 // box-sizing 리셋: width/maxWidth가 있는 요소에 padding·border를 더한 값이 실제 렌더 폭이 되면
 // (기본값 content-box) 좁은 화면에서 하나둘씩 화면 밖으로 삐져나간다. 요소마다 개별로 boxSizing을
@@ -12,6 +21,7 @@ export const keyframes = `
 html, body { margin: 0; padding: 0; height: 100%; }
 @keyframes pulse { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
 .app-shell { height: 100vh; height: 100dvh; }
+${themeCss}
 `;
 
 export const s = {
@@ -71,7 +81,7 @@ export const s = {
           color: C.muted, fontSize: 13.5, background: "#fff", borderRadius: 14, border: "1px dashed #ddd4c2", marginBottom: 14 },
   upcoming: { display: "flex", justifyContent: "space-between", alignItems: "center",
               background: `linear-gradient(100deg, ${C.orange}, ${C.gold})`, color: "#fff",
-              borderRadius: 14, padding: "14px 18px", cursor: "pointer", boxShadow: "0 6px 18px rgba(201,122,66,.3)" },
+              borderRadius: 14, padding: "14px 18px", cursor: "pointer", boxShadow: "0 6px 18px var(--c-shadow-upcoming)" },
   upLabel: { fontSize: 12, fontWeight: 700, opacity: 0.9 },
   upName: { fontSize: 18, fontWeight: 800, marginTop: 2 },
   upGo: { fontSize: 14, fontWeight: 800 },
@@ -128,7 +138,7 @@ export const s = {
   ticketCard: { position: "relative", display: "flex", background: "#fff", borderRadius: 16,
                 border: `1px solid ${C.goldLight}`, boxShadow: "0 3px 14px rgba(80,60,20,.08)",
                 marginBottom: 14, cursor: "pointer", overflow: "hidden" },
-  ticketCardHot: { border: `1.5px solid ${C.gold}`, boxShadow: "0 8px 22px rgba(184,147,74,.22)" },
+  ticketCardHot: { border: `1.5px solid ${C.gold}`, boxShadow: "0 8px 22px var(--c-shadow-hot)" },
   // 지난(완료된) 일정은 "다 쓴 티켓"처럼 — 살짝 바래고, 절취선을 실제로 찢어낸 지그재그로.
   ticketCardPast: { filter: "grayscale(.4) opacity(.86)" },
   // 실제 도장 찍은 느낌 — 두꺼운 빨간 테두리 + 안쪽 얇은 테두리(이중 링), 살짝 기울이고
@@ -189,10 +199,18 @@ export const s = {
          width: 54, height: 54, borderRadius: "50%", border: "none",
          background: `linear-gradient(135deg, ${C.orange}, ${C.goldDeep})`, color: "#fff",
          fontSize: 26, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center",
-         justifyContent: "center", boxShadow: "0 6px 16px rgba(168,89,42,.4)", lineHeight: 1 },
+         justifyContent: "center", boxShadow: "0 6px 16px var(--c-shadow-fab)", lineHeight: 1 },
   backBtn: { border: "none", background: "transparent", color: C.muted, fontSize: 14, fontWeight: 700,
              cursor: "pointer", padding: "0 0 10px", marginLeft: -2 },
   myPageDivider: { height: 1, background: C.goldLight, opacity: 0.5, margin: "28px 0 22px" },
+  themeSwatchRow: { display: "flex", gap: 10, flexWrap: "wrap" },
+  themeSwatchBtn: { display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 66,
+                    border: "none", background: "transparent", cursor: "pointer", padding: "4px 0" },
+  themeSwatchDot: { width: 40, height: 40, borderRadius: "50%", border: "2px solid transparent",
+                     boxShadow: "0 2px 6px rgba(0,0,0,.15)" },
+  themeSwatchDotOn: { border: `2px solid ${C.ink}` },
+  themeSwatchLabel: { fontSize: 11.5, fontWeight: 700, color: C.muted },
+  themeSwatchLabelOn: { color: C.ink },
 
   // 폼 공통 (일정 만들기 / 참여 게이트 / 항목 모달)
   formLabel: { fontSize: 13, fontWeight: 700, color: "#6f6656", marginBottom: 7, marginTop: 18 },
