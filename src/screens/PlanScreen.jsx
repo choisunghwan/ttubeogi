@@ -6,6 +6,7 @@ import { C } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import ItemFormModal from "../components/ItemFormModal";
+import CopyItemModal from "../components/CopyItemModal";
 import EditPlanModal from "../components/EditPlanModal";
 import PlanMap from "../components/PlanMap";
 import ItemRow from "../components/ItemRow";
@@ -90,6 +91,7 @@ export default function PlanScreen() {
   const [error, setError] = useState(null);
   const [selectedDayId, setSelectedDayId] = useState(null);
   const [modalState, setModalState] = useState(null); // { item? } | null — dayId는 selectedDayId 사용
+  const [copyingItem, setCopyingItem] = useState(null); // 복사할 항목 | null
   const [copied, setCopied] = useState(false);
   const [viewTab, setViewTab] = useState("list"); // "list" | "map"
   const [editingPlan, setEditingPlan] = useState(false);
@@ -319,6 +321,7 @@ export default function PlanScreen() {
                   highlighted={item.id === highlightItemId}
                   onEdit={() => setModalState({ item })}
                   onDelete={() => handleDelete(item)}
+                  onCopy={() => setCopyingItem(item)}
                 />
               ))}
             </SortableContext>
@@ -339,6 +342,17 @@ export default function PlanScreen() {
           memberId={memberId}
           onClose={() => setModalState(null)}
           onSaved={() => { setModalState(null); reload(); }}
+        />
+      )}
+
+      {copyingItem && (
+        <CopyItemModal
+          planId={planId}
+          item={copyingItem}
+          days={plan.days}
+          memberId={memberId}
+          onClose={() => setCopyingItem(null)}
+          onCopied={() => { setCopyingItem(null); reload(); }}
         />
       )}
 

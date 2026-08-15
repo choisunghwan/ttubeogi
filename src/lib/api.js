@@ -74,6 +74,13 @@ export function deleteItem(planId, itemId) {
   return request(`/api/plans/${planId}/items/${itemId}`, { method: "DELETE" });
 }
 
+export function copyItem(planId, itemId, dayId, createdBy) {
+  return request(`/api/plans/${planId}/items/${itemId}/copy`, {
+    method: "POST",
+    body: JSON.stringify({ dayId, createdBy }),
+  });
+}
+
 // 항목 첨부파일(항공권/기차표/바우처 사진·PDF) — multipart 대신 파일 원본을 그대로 바디로,
 // 파일명은 헤더로 넘긴다(한글 파일명 대비 encodeURIComponent).
 export async function uploadAttachment(planId, itemId, file) {

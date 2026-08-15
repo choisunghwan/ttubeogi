@@ -354,6 +354,45 @@ app.post("/:id/items", async (c) => {
   }, 201);
 });
 
+// POST /api/plans/:id/items/:itemId/copy — 항목을 복사해서 같은 날 또는 다른 날짜에 새로 추가.
+// "집"처럼 출발/복귀 때마다 반복되는 장소나, 1일차에 갔던 곳을 2일차에도 또 가고 싶을 때 매번
+// 처음부터 다시 입력하지 않도록. 첨부파일은 복사 안 함(R2 객체를 두 항목이 같이 참조하게 되면
+// 한쪽 삭제 시 다른 쪽도 깨지는 문제가 생기므로 — 복사본은 첨부 없이 시작).
+app.post("/:id/items/:itemId/copy", async (c) => {
+  const { id, itemId } = c.req.param();
+  const source = await c.env.DB.prepare(
+    "SELECT items.* FROM items JOIN days ON items.day_id = days.id WHERE items.id = ? AND days.plan_id = ?"
+  ).bind(itemId, id).first();
+  if (!source) return c.json({ error: "항목을 찾을 수 없습니다" }, 404);
+
+  const body = await c.req.json().catch(() => ({}));
+  const targetDayId = body.dayId || source.day_id;
+  const targetDay = await c.env.DB.prepare("SELECT id FROM days WHERE id = ? AND plan_id = ?").bind(targetDayId, id).first();
+  if (!targetDay) return c.json({ error: "날짜를 찾을 수 없습니다" }, 404);
+
+  const existing = await c.env.DB.prepare("SELECT id, time FROM items WHERE day_id = ? ORDER BY sort_order").bind(targetDayId).all();
+  const rows = existing.results;
+  const insertAt = findInsertIndex(rows.map((r) => r.time), source.time);
+  const newItemId = newId("item");
+
+  const stmts = rows.slice(insertAt).map((r, i) =>
+    c.env.DB.prepare("UPDATE items SET sort_order = ? WHERE id = ?").bind(insertAt + i + 1, r.id)
+  );
+  stmts.push(
+    c.env.DB.prepare(
+      `INSERT INTO items (id, day_id, type, time, name, query, lat, lng, map_link, move, flight_no, voucher, detail, item_status, created_by, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`
+    ).bind(
+      newItemId, targetDayId, source.type, source.time, source.name, source.query, source.lat, source.lng,
+      source.map_link, source.move, source.flight_no, source.voucher, source.detail, body.createdBy || null, insertAt
+    )
+  );
+  await c.env.DB.batch(stmts);
+
+  c.executionCtx.waitUntil(notifyRoom(c.env, id, "item.added"));
+  return c.json({ id: newItemId, dayId: targetDayId }, 201);
+});
+
 // PATCH /api/plans/:id/days/:dayId/reorder — 드래그로 바꾼 순서를 그대로 반영.
 // body: { itemIds: [그 날짜 항목 id를 새 순서대로 전부] }
 app.patch("/:id/days/:dayId/reorder", async (c) => {

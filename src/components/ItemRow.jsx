@@ -4,13 +4,13 @@ import { CSS } from "@dnd-kit/utilities";
 import { s } from "../styles";
 import { TYPES, C } from "../theme";
 import MoveIcon from "./MoveIcon";
-import { CalendarIcon, TicketIcon, PlaneBadgeIcon, PaperclipIcon } from "./Icons";
+import { CalendarIcon, TicketIcon, PlaneBadgeIcon, PaperclipIcon, CopyIcon } from "./Icons";
 import { buildItemICS, downloadICS } from "../lib/ics";
 import { attachmentUrl } from "../lib/api";
 
 // 드래그 핸들만 dnd-kit 리스너를 붙인다 — 행 전체를 드래그 대상으로 하면
 // ✎/🗑 탭이나 스크롤 제스처와 자꾸 충돌해서, 잡을 수 있는 손잡이를 따로 둔다.
-export default function ItemRow({ item, creator, planId, dayDate, planTitle, highlighted, onEdit, onDelete }) {
+export default function ItemRow({ item, creator, planId, dayDate, planTitle, highlighted, onEdit, onDelete, onCopy }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const t = TYPES[item.type] || TYPES.기타;
   const [showAttachment, setShowAttachment] = useState(false);
@@ -82,6 +82,7 @@ export default function ItemRow({ item, creator, planId, dayDate, planTitle, hig
       </div>
       <div style={s.itemRowActions}>
         <button style={s.itemRowActionBtn} title="캘린더에 담기" onClick={handleAddToCalendar}><CalendarIcon size={15} color={C.ink} /></button>
+        <button style={s.itemRowActionBtn} title="다른 날짜에 복사" onClick={onCopy}><CopyIcon size={14} color={C.ink} /></button>
         <button style={s.itemRowActionBtn} onClick={onEdit}>✎</button>
         <button style={s.itemRowActionBtn} onClick={onDelete}>🗑</button>
       </div>
