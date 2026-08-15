@@ -341,6 +341,15 @@ export const s = {
                 borderRadius: "20px 20px 0 0", padding: "20px 16px 28px" },
   modalHead: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 },
   modalTitle: { fontSize: 18, fontWeight: 800 },
+  // 항목 행의 ⋯ 더보기를 누르면 뜨는 작은 액션 시트 — modalOverlay 재사용, 안쪽은 세로로 쌓은 버튼 목록.
+  actionSheet: { width: "100%", maxWidth: 440, background: C.paper, borderRadius: "20px 20px 0 0",
+                 padding: "10px 12px calc(12px + env(safe-area-inset-bottom))", display: "flex",
+                 flexDirection: "column", gap: 4 },
+  actionSheetBtn: { display: "flex", alignItems: "center", gap: 10, width: "100%", border: "none",
+                     background: "transparent", padding: "13px 10px", borderRadius: 12, fontSize: 15.5,
+                     fontWeight: 700, color: C.ink, cursor: "pointer", textAlign: "left" },
+  actionSheetCancel: { marginTop: 6, width: "100%", border: "none", background: "#f2ede0", color: "#6f6656",
+                        padding: "12px 0", borderRadius: 12, fontSize: 15, fontWeight: 700, cursor: "pointer" },
   modalCloseBtn: { border: "none", background: "transparent", fontSize: 20, color: C.muted, cursor: "pointer" },
 
   // 첨부 이미지(항공권/바우처) 라이트박스 — modalOverlay는 아래에서 올라오는 폼 시트용이라

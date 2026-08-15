@@ -14,6 +14,7 @@ export default function ItemRow({ item, creator, planId, dayDate, planTitle, hig
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const t = TYPES[item.type] || TYPES.기타;
   const [showAttachment, setShowAttachment] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const isImageAttachment = item.attachmentType?.startsWith("image/");
 
   function handleAddToCalendar(e) {
@@ -81,11 +82,26 @@ export default function ItemRow({ item, creator, planId, dayDate, planTitle, hig
         {item.memo && <div style={s.itemRowMemo}>{item.memo}</div>}
       </div>
       <div style={s.itemRowActions}>
-        <button style={s.itemRowActionBtn} title="캘린더에 담기" onClick={handleAddToCalendar}><CalendarIcon size={15} color={C.ink} /></button>
-        <button style={s.itemRowActionBtn} title="다른 날짜에 복사" onClick={onCopy}><CopyIcon size={14} color={C.ink} /></button>
         <button style={s.itemRowActionBtn} onClick={onEdit}>✎</button>
-        <button style={s.itemRowActionBtn} onClick={onDelete}>🗑</button>
+        <button style={s.itemRowActionBtn} title="더보기" onClick={() => setShowMenu(true)}>⋯</button>
       </div>
+
+      {showMenu && (
+        <div style={s.modalOverlay} onClick={() => setShowMenu(false)}>
+          <div style={s.actionSheet} onClick={(e) => e.stopPropagation()}>
+            <button style={s.actionSheetBtn} onClick={(e) => { setShowMenu(false); handleAddToCalendar(e); }}>
+              <CalendarIcon size={16} color={C.ink} /> 캘린더에 담기
+            </button>
+            <button style={s.actionSheetBtn} onClick={() => { setShowMenu(false); onCopy(); }}>
+              <CopyIcon size={15} color={C.ink} /> 다른 날짜에 복사
+            </button>
+            <button style={{ ...s.actionSheetBtn, color: "#c0392b" }} onClick={() => { setShowMenu(false); onDelete(); }}>
+              🗑 삭제
+            </button>
+            <button style={s.actionSheetCancel} onClick={() => setShowMenu(false)}>취소</button>
+          </div>
+        </div>
+      )}
 
       {showAttachment && (
         <div style={s.lightboxOverlay} onClick={() => setShowAttachment(false)}>
