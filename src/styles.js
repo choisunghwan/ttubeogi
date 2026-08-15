@@ -131,10 +131,13 @@ export const s = {
   ticketCardHot: { border: `1.5px solid ${C.gold}`, boxShadow: "0 8px 22px rgba(184,147,74,.22)" },
   // 지난(완료된) 일정은 "다 쓴 티켓"처럼 — 살짝 바래고, 절취선을 실제로 찢어낸 지그재그로.
   ticketCardPast: { filter: "grayscale(.4) opacity(.86)" },
-  ticketStampDone: { position: "absolute", top: 12, right: 92, fontFamily: SERIF_EN, fontStyle: "italic",
-                      fontSize: 10, fontWeight: 700, letterSpacing: 1.5, color: C.gold, opacity: 0.55,
-                      border: `1px solid ${C.gold}`, borderRadius: 4, padding: "1px 6px",
-                      transform: "rotate(-8deg)" },
+  // 실제 도장 찍은 느낌 — 두꺼운 빨간 테두리 + 안쪽 얇은 테두리(이중 링), 살짝 기울이고
+  // 잉크가 옅게 스민 것처럼 opacity를 낮춰서 인쇄물에 도장 찍은 듯한 느낌을 냄.
+  ticketStampDone: { position: "absolute", top: 10, right: 88, fontFamily: SERIF_EN, fontStyle: "italic",
+                      fontSize: 13, fontWeight: 800, letterSpacing: 2, color: "#c0392b", opacity: 0.82,
+                      textTransform: "uppercase", border: "2.5px solid #c0392b", borderRadius: 6,
+                      padding: "3px 9px", transform: "rotate(-11deg)",
+                      boxShadow: "inset 0 0 0 2px rgba(192,57,43,.4)", mixBlendMode: "multiply" },
   ticketMain: { flex: 1, minWidth: 0, padding: "15px 14px 14px" },
   ticketEyebrow: { fontFamily: SERIF_EN, fontStyle: "italic", fontSize: 10.5, fontWeight: 700,
                    letterSpacing: 1.6, color: C.gold, textTransform: "uppercase", marginBottom: 5 },
