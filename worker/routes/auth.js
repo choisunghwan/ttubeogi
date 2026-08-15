@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { getCookie, setCookie, deleteCookie } from "hono/cookie";
 import { signSession, randomToken, getSessionUser } from "../lib/session.js";
 import { newId } from "../ids.js";
+import { notifyRoom } from "../lib/notify.js";
 
 const SESSION_COOKIE = "ttubeogi_session";
 const STATE_COOKIE = "kakao_oauth_state";
@@ -95,10 +96,24 @@ app.patch("/me", async (c) => {
 
   const { nickname } = await c.req.json().catch(() => ({}));
   if (!nickname?.trim()) return c.json({ error: "nickname은 필수입니다" }, 400);
+  const trimmed = nickname.trim();
 
-  await c.env.DB.prepare("UPDATE users SET nickname = ?, nickname_customized = 1 WHERE id = ?")
-    .bind(nickname.trim(), user.id).run();
-  return c.json({ id: user.id, nickname: nickname.trim() });
+  // 이 계정으로 참여했던 모든 일정의 멤버 이름도 같이 바꾼다 — 로그인 사용자는 카카오 닉네임으로
+  // 자동 참여하는 거라, 마이페이지에서 이름을 바꿨는데 예전 일정엔 옛날 이름이 그대로 남아있으면
+  // 헷갈린다. members.user_id로 이어진 모든 행을 갱신하고, 그 일정들 방에도 실시간으로 알린다.
+  const affectedPlans = await c.env.DB.prepare(
+    "SELECT DISTINCT plan_id FROM members WHERE user_id = ?"
+  ).bind(user.id).all();
+
+  await c.env.DB.batch([
+    c.env.DB.prepare("UPDATE users SET nickname = ?, nickname_customized = 1 WHERE id = ?").bind(trimmed, user.id),
+    c.env.DB.prepare("UPDATE members SET name = ? WHERE user_id = ?").bind(trimmed, user.id),
+  ]);
+  c.executionCtx.waitUntil(
+    Promise.all(affectedPlans.results.map((p) => notifyRoom(c.env, p.plan_id, "member.updated")))
+  );
+
+  return c.json({ id: user.id, nickname: trimmed, isAdmin: user.isAdmin });
 });
 
 // POST /api/auth/logout

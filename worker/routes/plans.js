@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { newPlanId, newId } from "../ids.js";
 import { getSessionUser } from "../lib/session.js";
+import { notifyRoom } from "../lib/notify.js";
 
 // 멤버 아바타 색상 팔레트. src/theme.js의 C.orange/member2/member3와 값 맞춤 + 추가 색상.
 const MEMBER_COLORS = ["#e8863a", "#5b8c7b", "#7a6cc4", "#d9534f", "#4a6fa5", "#c0568f"];
@@ -35,16 +36,6 @@ function findInsertIndex(existingTimesInOrder, newTime) {
     if (!t || t > newTime) return i;
   }
   return existingTimesInOrder.length;
-}
-
-// D1 쓰기가 끝난 뒤 그 방(PlanRoom)에 붙어있는 모든 WebSocket 클라이언트에게 "바뀌었다"고 알린다.
-// 페이로드는 최소한만 담고, 클라이언트는 받으면 그냥 전체를 다시 불러온다(GET /api/plans/:id).
-async function notifyRoom(env, planId, type) {
-  const stub = env.PLAN_ROOM.get(env.PLAN_ROOM.idFromName(planId));
-  await stub.fetch("https://internal/broadcast", {
-    method: "POST",
-    body: JSON.stringify({ type, planId }),
-  });
 }
 
 const app = new Hono();
@@ -176,6 +167,7 @@ app.get("/:id", async (c) => {
         attachmentType: it.attachment_type,
         itemStatus: it.item_status,
         createdBy: it.created_by,
+        updatedBy: it.updated_by,
       });
     }
   }
@@ -453,6 +445,13 @@ app.patch("/:id/items/:itemId", async (c) => {
     }
   }
   if (sets.length === 0) return c.json({ error: "수정할 필드가 없습니다" }, 400);
+
+  // 누가 마지막으로 고쳤는지 — 처음 추가한 사람(created_by)만 계속 보이던 걸,
+  // 실제로 최근에 수정한 사람으로 바뀌어 보이게.
+  if (body.editedBy) {
+    sets.push("updated_by = ?");
+    values.push(body.editedBy);
+  }
 
   values.push(itemId);
   await c.env.DB.prepare(`UPDATE items SET ${sets.join(", ")} WHERE id = ?`).bind(...values).run();

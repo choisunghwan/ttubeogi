@@ -10,9 +10,11 @@ import { attachmentUrl } from "../lib/api";
 
 // 드래그 핸들만 dnd-kit 리스너를 붙인다 — 행 전체를 드래그 대상으로 하면
 // ✎/🗑 탭이나 스크롤 제스처와 자꾸 충돌해서, 잡을 수 있는 손잡이를 따로 둔다.
-export default function ItemRow({ item, creator, planId, dayDate, planTitle, highlighted, onEdit, onDelete, onCopy }) {
+export default function ItemRow({ item, creator, editor, planId, dayDate, planTitle, highlighted, onEdit, onDelete, onCopy }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const t = TYPES[item.type] || TYPES.기타;
+  // 마지막으로 고친 사람이 있으면 그 사람을, 없으면(한 번도 안 고쳐졌으면) 처음 추가한 사람을 보여준다.
+  const attribution = editor ? { member: editor, label: "수정" } : creator ? { member: creator, label: "추가" } : null;
   const [showAttachment, setShowAttachment] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const isImageAttachment = item.attachmentType?.startsWith("image/");
@@ -49,8 +51,8 @@ export default function ItemRow({ item, creator, planId, dayDate, planTitle, hig
               다음 <MoveIcon move={item.move} size={13} color={C.muted} /> {item.move}
             </span>
           )}
-          {item.move && creator ? "·" : ""}
-          {creator ? <span style={{ color: creator.color, fontWeight: 700 }}>{creator.name} 추가</span> : ""}
+          {item.move && attribution ? "·" : ""}
+          {attribution ? <span style={{ color: attribution.member.color, fontWeight: 700 }}>{attribution.member.name} {attribution.label}</span> : ""}
         </div>
         {(item.flightNo || item.voucher || item.attachmentName) && (
           <div style={{ ...s.itemRowMeta, display: "flex", alignItems: "center", gap: 8, marginTop: 3, flexWrap: "wrap" }}>

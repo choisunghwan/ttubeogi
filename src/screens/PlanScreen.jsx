@@ -315,6 +315,7 @@ export default function PlanScreen() {
                   key={item.id}
                   item={item}
                   creator={plan.members.find((m) => m.id === item.createdBy)}
+                  editor={plan.members.find((m) => m.id === item.updatedBy)}
                   planId={planId}
                   dayDate={selectedDay.date}
                   planTitle={plan.title}

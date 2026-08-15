@@ -133,7 +133,7 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
     try {
       let itemId = item?.id;
       if (isEdit) {
-        await updateItem(planId, item.id, { type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra, ...(moveDayId !== dayId ? { dayId: moveDayId } : {}) });
+        await updateItem(planId, item.id, { type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra, editedBy: memberId, ...(moveDayId !== dayId ? { dayId: moveDayId } : {}) });
       } else {
         const created = await addItem(planId, { dayId, type, time: time || null, name: name.trim(), query: query || null, ...geo, mapLink: mapLink || null, move: move || null, ...extra, createdBy: memberId });
         itemId = created.id;
