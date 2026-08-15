@@ -199,6 +199,11 @@ export const s = {
   // "탭하면 사이즈가 깨진다"는 증상으로 보인다 — 16 유지 필수.
   formInput: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #e2dac6",
                fontSize: 16, fontFamily: "inherit", background: "#fff", color: C.ink, boxSizing: "border-box" },
+  // 날짜 두 개를 나란히 둘 때 쓰는 좁은 버전 — 좌우 패딩을 줄여서 좁은 화면에서도 두 칸이
+  // 한 줄에 들어가게. fontSize는 16 밑으로 못 내림(iOS 자동 확대 버그) 그대로 유지.
+  formInputDate: { width: "100%", padding: "12px 6px", borderRadius: 12, border: "1px solid #e2dac6",
+                   fontSize: 16, fontFamily: "inherit", background: "#fff", color: C.ink, boxSizing: "border-box",
+                   minWidth: 0 },
   formTextarea: { width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid #e2dac6",
                   fontSize: 16, fontFamily: "inherit", background: "#fff", color: C.ink, boxSizing: "border-box",
                   resize: "vertical", lineHeight: 1.5 },

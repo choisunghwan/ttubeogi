@@ -85,15 +85,19 @@ export default function EditPlanModal({ planId, plan, onClose, onSaved, onDelete
           <div style={s.formLabel}>제목</div>
           <input style={s.formInput} value={title} onChange={(e) => setTitle(e.target.value)} />
 
-          <div style={s.formLabel}>{kind === "여행" ? "시작일" : "날짜"}</div>
-          <input type="date" style={s.formInput} value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-          {kind === "여행" && (
-            <>
-              <div style={s.formLabel}>종료일</div>
-              <input type="date" style={s.formInput} value={endDate} min={startDate || undefined}
-                     onChange={(e) => setEndDate(e.target.value)} />
-            </>
-          )}
+          <div style={s.formRow}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={s.formLabel}>{kind === "여행" ? "시작일" : "날짜"}</div>
+              <input type="date" style={s.formInputDate} value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            {kind === "여행" && (
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={s.formLabel}>종료일</div>
+                <input type="date" style={s.formInputDate} value={endDate} min={startDate || undefined}
+                       onChange={(e) => setEndDate(e.target.value)} />
+              </div>
+            )}
+          </div>
 
           <div style={s.formLabel}>지역 (선택)</div>
           <input style={s.formInput} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="예: 상하이, 부산" />
