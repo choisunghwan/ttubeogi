@@ -121,6 +121,11 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
     setGeoLabel(result.label);
     setGeoCandidates([]);
     setGeoStatus(null);
+    // 이름을 아직 안 적었으면 방금 고른 장소 이름을 그대로 채워준다 — 해외 지명은
+    // "번역 (원문)" 형태라 원문 괄호는 빼고 번역된 이름만 넣는다.
+    if (!name.trim()) {
+      setName(result.label.replace(/\s*\([^)]*\)\s*$/, ""));
+    }
   }
 
   async function handleSubmit(e) {
