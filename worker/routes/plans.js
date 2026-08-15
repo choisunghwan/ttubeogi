@@ -4,7 +4,7 @@ import { getSessionUser } from "../lib/session.js";
 import { notifyRoom } from "../lib/notify.js";
 
 // 멤버 아바타 색상 팔레트. src/theme.js의 C.orange/member2/member3와 값 맞춤 + 추가 색상.
-const MEMBER_COLORS = ["#e8863a", "#5b8c7b", "#7a6cc4", "#d9534f", "#4a6fa5", "#c0568f"];
+const MEMBER_COLORS = ["#c97a42", "#5b8c7b", "#7a6cc4", "#d9534f", "#4a6fa5", "#c0568f"];
 const KINDS = new Set(["여행", "데이트", "약속"]);
 
 function today() {

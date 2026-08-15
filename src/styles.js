@@ -70,8 +70,8 @@ export const s = {
   hint: { display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "18px 16px",
           color: C.muted, fontSize: 13.5, background: "#fff", borderRadius: 14, border: "1px dashed #ddd4c2", marginBottom: 14 },
   upcoming: { display: "flex", justifyContent: "space-between", alignItems: "center",
-              background: `linear-gradient(100deg, ${C.orange}, #f0a869)`, color: "#fff",
-              borderRadius: 14, padding: "14px 18px", cursor: "pointer", boxShadow: "0 6px 18px rgba(232,134,58,.3)" },
+              background: `linear-gradient(100deg, ${C.orange}, ${C.gold})`, color: "#fff",
+              borderRadius: 14, padding: "14px 18px", cursor: "pointer", boxShadow: "0 6px 18px rgba(201,122,66,.3)" },
   upLabel: { fontSize: 12, fontWeight: 700, opacity: 0.9 },
   upName: { fontSize: 18, fontWeight: 800, marginTop: 2 },
   upGo: { fontSize: 14, fontWeight: 800 },
@@ -186,9 +186,10 @@ export const s = {
   // 원형 버튼(FAB)으로 항상 떠 있게 함 — 탭바 바로 위, 화면(app) 기준 절대 위치라
   // 안쪽 리스트가 스크롤돼도 같이 안 움직인다.
   fab: { position: "absolute", right: 16, bottom: "calc(76px + env(safe-area-inset-bottom))", zIndex: 300,
-         width: 54, height: 54, borderRadius: "50%", border: "none", background: C.orange, color: "#fff",
+         width: 54, height: 54, borderRadius: "50%", border: "none",
+         background: `linear-gradient(135deg, ${C.orange}, ${C.goldDeep})`, color: "#fff",
          fontSize: 26, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center",
-         justifyContent: "center", boxShadow: "0 6px 16px rgba(232,134,58,.45)", lineHeight: 1 },
+         justifyContent: "center", boxShadow: "0 6px 16px rgba(168,89,42,.4)", lineHeight: 1 },
   backBtn: { border: "none", background: "transparent", color: C.muted, fontSize: 14, fontWeight: 700,
              cursor: "pointer", padding: "0 0 10px", marginLeft: -2 },
   myPageDivider: { height: 1, background: C.goldLight, opacity: 0.5, margin: "28px 0 22px" },
@@ -239,7 +240,8 @@ export const s = {
                color: C.ink, fontSize: 14, fontWeight: 700, cursor: "pointer" },
   pickerBtnOn: { border: `1.5px solid ${C.orange}`, background: "#fbecd9", color: C.orangeDeep },
   submitBtn: { width: "100%", marginTop: 26, padding: "15px 0", borderRadius: 14, border: "none",
-               background: C.orange, color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer" },
+               background: `linear-gradient(135deg, ${C.orangeDeep}, ${C.goldDeep})`,
+               color: "#fff", fontSize: 16, fontWeight: 800, cursor: "pointer" },
   submitBtnDisabled: { opacity: 0.5, cursor: "not-allowed" },
 
   // 참여 게이트
@@ -276,7 +278,7 @@ export const s = {
   dayChips: { display: "flex", gap: 8, overflowX: "auto", marginBottom: 14, paddingBottom: 2 },
   dayChip: { flexShrink: 0, padding: "8px 14px", borderRadius: 20, border: "1.5px solid #e2dac6",
              background: "#fff", color: C.ink, fontSize: 13, fontWeight: 700, cursor: "pointer" },
-  dayChipOn: { border: `1.5px solid ${C.orange}`, background: C.orange, color: "#fff" },
+  dayChipOn: { border: `1.5px solid ${C.goldDeep}`, background: C.orange, color: "#fff" },
 
   // 항목 리스트 카드
   itemRow: { display: "flex", alignItems: "center", gap: 12, background: "#fff", borderRadius: 14,
@@ -338,8 +340,10 @@ export const s = {
   flightRouteLine: { display: "flex", alignItems: "center", gap: 3, flexShrink: 0, padding: "0 2px" },
   flightRouteLineBar: { width: 12, height: 1, background: C.goldLight },
   flightTicketDivider: { height: 1, background: "#f0ebe0", margin: "16px 0 12px" },
+  // 티켓 카드 절취선(perforation)이랑 같은 골드 점선 언어를 써서 "+ 항목 추가"도
+  // 그냥 평범한 버튼이 아니라 티켓 톤에 맞는 요소로 보이게.
   addItemBtn: { width: "100%", marginTop: 4, marginBottom: 18, padding: "13px 0", borderRadius: 12,
-                border: `1.5px dashed ${C.orange}`, background: "#fff", color: C.orangeDeep,
+                border: `1.5px dashed ${C.gold}`, background: "#fff", color: C.goldDeep,
                 fontSize: 14.5, fontWeight: 800, cursor: "pointer" },
 
   // 모달
