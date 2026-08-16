@@ -99,6 +99,16 @@ export function MapPinIcon({ size = 15, color = "currentColor" }) {
   );
 }
 
+export function RouteIcon({ size = 15, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="5" cy="6" r="2.2" stroke={color} strokeWidth="1.7" />
+      <circle cx="19" cy="18" r="2.2" stroke={color} strokeWidth="1.7" />
+      <path d="M5 8.2v3.3a3 3 0 003 3h4a3 3 0 013 3v.3" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeDasharray="2.5 2.5" />
+    </svg>
+  );
+}
+
 export function ExpandIcon({ size = 16, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

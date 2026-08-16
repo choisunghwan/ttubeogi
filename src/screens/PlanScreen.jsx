@@ -11,8 +11,9 @@ import EditPlanModal from "../components/EditPlanModal";
 import PlanMap from "../components/PlanMap";
 import ItemRow from "../components/ItemRow";
 import TicketCard from "../components/TicketCard";
-import { ListIcon, MapPinIcon, TicketIcon, ShareIcon } from "../components/Icons";
+import { ListIcon, MapPinIcon, TicketIcon, ShareIcon, RouteIcon } from "../components/Icons";
 import { getPlan, joinPlan, deleteItem, reorderItems } from "../lib/api";
+import { optimizeRouteOrder } from "../lib/routeOptimize";
 import { getMemberId, rememberPlan } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
 import { usePlanSocket } from "../lib/ws";
@@ -213,6 +214,37 @@ export default function PlanScreen() {
     }
   }
 
+  // 좌표가 있는 항목만 최근접 이웃 + 2-opt로 동선을 계산해서 재배열한다. 좌표가 없는 항목(메모성
+  // 일정 등)은 원래 있던 자리 그대로 두고, 좌표 있는 항목들만 그 자리들에 새 순서로 채워 넣는다 —
+  // 좌표 없는 항목이 최적화 때문에 엉뚱한 위치로 튀는 걸 막기 위함. 첫 좌표 항목은 출발점으로
+  // 고정(보통 숙소/집이라 사용자가 그대로 유지하고 싶어할 확률이 높음).
+  async function handleOptimizeRoute() {
+    if (!selectedDay) return;
+    const geocoded = selectedDay.items.filter((it) => it.lat != null && it.lng != null);
+    if (geocoded.length < 3) {
+      window.alert("좌표가 있는 일정이 3개 이상일 때 동선을 최적화할 수 있어요.");
+      return;
+    }
+    if (!window.confirm("현재 순서를 이동 거리가 최소가 되는 순서로 재배열할까요?")) return;
+
+    const optimizedQueue = optimizeRouteOrder(geocoded);
+    const reordered = selectedDay.items.map((it) =>
+      it.lat != null && it.lng != null ? optimizedQueue.shift() : it
+    );
+
+    setPlan((prev) => ({
+      ...prev,
+      days: prev.days.map((d) => (d.id === selectedDay.id ? { ...d, items: reordered } : d)),
+    }));
+
+    try {
+      await reorderItems(planId, selectedDay.id, reordered.map((i) => i.id));
+    } catch (e) {
+      window.alert(e.message);
+      reload();
+    }
+  }
+
   return (
     <div style={s.pad}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -306,6 +338,12 @@ export default function PlanScreen() {
         <>
           {selectedDay.items.length === 0 && (
             <div style={s.emptyState}>아직 추가된 일정이 없어요.<br />첫 항목을 추가해보세요!</div>
+          )}
+
+          {selectedDay.items.filter((it) => it.lat != null && it.lng != null).length >= 3 && (
+            <button style={s.optimizeRouteBtn} onClick={handleOptimizeRoute}>
+              <RouteIcon size={14} color={C.orangeDeep} /> 동선 최적화
+            </button>
           )}
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>

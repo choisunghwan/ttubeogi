@@ -363,6 +363,10 @@ export const s = {
   addItemBtn: { width: "100%", marginTop: 4, marginBottom: 18, padding: "13px 0", borderRadius: 12,
                 border: `1.5px dashed ${C.gold}`, background: "#fff", color: C.goldDeep,
                 fontSize: 14.5, fontWeight: 800, cursor: "pointer" },
+  optimizeRouteBtn: { width: "100%", marginBottom: 10, padding: "11px 0", borderRadius: 12,
+                      border: `1.5px solid ${C.orange}`, background: C.pillBg, color: C.orangeDeep,
+                      fontSize: 13.5, fontWeight: 800, cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", gap: 6 },
 
   // 모달
   modalOverlay: { position: "fixed", inset: 0, background: "rgba(58,47,36,.45)", display: "flex",
