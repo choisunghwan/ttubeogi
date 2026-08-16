@@ -369,9 +369,9 @@ export default function PlanScreen() {
 
           {(selectedDay.items.filter((it) => it.lat != null && it.lng != null && !it.pinned).length >= 3
             || preOptimizeOrder?.dayId === selectedDay.id) && (
-            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
               {selectedDay.items.filter((it) => it.lat != null && it.lng != null && !it.pinned).length >= 3 && (
-                <button style={{ ...s.optimizeRouteBtn, marginBottom: 0, flex: 1 }} onClick={handleOptimizeRoute}>
+                <button style={{ ...s.optimizeRouteBtn, marginBottom: 0, flex: "1 1 160px" }} onClick={handleOptimizeRoute}>
                   <RouteIcon size={14} color={C.orangeDeep} /> 동선 최적화
                 </button>
               )}

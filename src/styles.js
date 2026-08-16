@@ -364,9 +364,11 @@ export const s = {
   addItemBtn: { width: "100%", marginTop: 4, marginBottom: 18, padding: "13px 0", borderRadius: 12,
                 border: `1.5px dashed ${C.gold}`, background: "#fff", color: C.goldDeep,
                 fontSize: 14.5, fontWeight: 800, cursor: "pointer" },
+  // whiteSpace:nowrap 필수 — 한글은 글자 사이마다 줄바꿈이 가능해서(영어 단어 단위와 다름),
+  // 공간이 좁아지면 "동선 최적화"가 줄바꿈 대신 한 글자씩 세로로 쌓이는 심한 깨짐이 날 수 있음.
   optimizeRouteBtn: { width: "100%", marginBottom: 10, padding: "11px 0", borderRadius: 12,
                       border: `1.5px solid ${C.orange}`, background: C.pillBg, color: C.orangeDeep,
-                      fontSize: 13.5, fontWeight: 800, cursor: "pointer",
+                      fontSize: 13.5, fontWeight: 800, cursor: "pointer", whiteSpace: "nowrap",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 6 },
 
   // 모달
