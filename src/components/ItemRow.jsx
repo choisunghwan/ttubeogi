@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { s } from "../styles";
-import { TYPES, C } from "../theme";
+import { TYPES, C, themedColor } from "../theme";
 import MoveIcon from "./MoveIcon";
 import { CalendarIcon, TicketIcon, PlaneBadgeIcon, PaperclipIcon, CopyIcon } from "./Icons";
 import { buildItemICS, downloadICS } from "../lib/ics";
@@ -52,7 +52,7 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
             </span>
           )}
           {item.move && attribution ? "·" : ""}
-          {attribution ? <span style={{ color: attribution.member.color, fontWeight: 700 }}>{attribution.member.name} {attribution.label}</span> : ""}
+          {attribution ? <span style={{ color: themedColor(attribution.member.color), fontWeight: 700 }}>{attribution.member.name} {attribution.label}</span> : ""}
         </div>
         {(item.flightNo || item.voucher || item.attachmentName) && (
           <div style={{ ...s.itemRowMeta, display: "flex", alignItems: "center", gap: 8, marginTop: 3, flexWrap: "wrap" }}>

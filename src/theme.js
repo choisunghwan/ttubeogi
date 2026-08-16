@@ -61,6 +61,16 @@ export const THEMES = [
   },
 ];
 
+// 멤버 아바타 색은 서버(worker/routes/plans.js MEMBER_COLORS)가 가입 시점에 정해서 D1에 그대로
+// 저장해둔 리터럴 hex라, 마이페이지에서 테마를 바꿔도 반응하지 않는다(다른 사람도 보는 공유
+// 데이터라 뷰어 개인 취향으로 서버 값을 바꿀 순 없음) — 방장 기본 색만큼은 원래 "이 앱의 브랜드
+// 오렌지"였을 뿐 특정 사람을 구분하려는 색이 아니었으므로, 그 리터럴 값을 만나면 지금 테마의
+// 악센트로 바꿔치기해서 보여준다. 다른 5가지 구분용 색(초록/보라/빨강/파랑/분홍)은 그대로 둔다.
+const LEGACY_DEFAULT_ORANGE_HEXES = new Set(["#e8863a", "#c97a42"]);
+export function themedColor(hex) {
+  return LEGACY_DEFAULT_ORANGE_HEXES.has(hex) ? C.orange : hex;
+}
+
 // 프리미엄 세리프 폰트(index.html에서 Google Fonts로 불러옴) — 티켓 카드 제목/숫자에 사용.
 export const SERIF_KO = "'Noto Serif KR', serif";
 export const SERIF_EN = "'Playfair Display', serif";

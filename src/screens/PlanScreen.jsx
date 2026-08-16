@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
-import { C } from "../theme";
+import { C, themedColor } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import ItemFormModal from "../components/ItemFormModal";
@@ -230,7 +230,7 @@ export default function PlanScreen() {
         </div>
         <div style={s.members}>
           {plan.members.map((m) => (
-            <div key={m.id} style={{ ...s.avatar, background: m.color }}>{m.name[0]}</div>
+            <div key={m.id} style={{ ...s.avatar, background: themedColor(m.color) }}>{m.name[0]}</div>
           ))}
           <div
             title={connected ? "실시간 연결됨" : "연결 끊김 — 재연결 시도 중"}

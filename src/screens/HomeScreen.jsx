@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { C } from "../theme";
+import { C, themedColor } from "../theme";
 import { s } from "../styles";
 import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import KindIcon from "../components/KindIcon";
@@ -50,7 +50,7 @@ export default function HomeScreen() {
           <div style={s.ticketBottom}>
             <div style={s.planMembers}>
               {p.members.map((m) => (
-                <span key={m.id} style={{ ...s.miniAvatar, background: m.color }}>{m.name[0]}</span>
+                <span key={m.id} style={{ ...s.miniAvatar, background: themedColor(m.color) }}>{m.name[0]}</span>
               ))}
             </div>
             <span style={s.planSpots}>{p.spots}곳</span>
