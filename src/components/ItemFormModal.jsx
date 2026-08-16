@@ -236,6 +236,7 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
               {geoStatus === "searching" ? "찾는 중…" : "🔍 좌표 찾기"}
             </button>
           </div>
+          <div style={s.formHint}>해외는 도시 이름을 같이 적으면 더 정확해요 (예: "디즈니랜드"보다 "도쿄 디즈니랜드")</div>
           {coordsValid && <div style={{ ...s.formHint, color: C.orangeDeep, fontWeight: 700 }}>📍 {geoLabel} — 좌표 확인됨</div>}
           {geoStatus === "notfound" && <div style={s.formHint}>결과 없음 — 아래 지도 링크를 붙여넣어 주세요</div>}
           {geoStatus === "picking" && geoCandidates.length > 0 && (

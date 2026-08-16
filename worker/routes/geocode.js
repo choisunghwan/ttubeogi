@@ -42,19 +42,20 @@ function hasHangul(text) {
 
 // 키 없이 쓸 수 있는 구글 번역 비공식 엔드포인트 — 짧은 문자열 하나 번역하는 정도의 가벼운
 // 용도라 무료로 충분함. 실패해도(네트워크 오류 등) null 반환해서 원문을 그대로 쓰게 한다.
-async function translateToKorean(text) {
+async function translateText(text, targetLang, sourceLang = "auto") {
   if (!text) return null;
   try {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ko&dt=t&q=${encodeURIComponent(text)}`;
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
     const res = await fetch(url);
     if (!res.ok) return null;
     const data = await res.json();
     const joined = data[0]?.map((chunk) => chunk[0]).join("") || null;
-    return joined && joined !== text ? joined : null;
+    return joined && joined.toLowerCase() !== text.toLowerCase() ? joined : null;
   } catch {
     return null;
   }
 }
+const translateToKorean = (text) => translateText(text, "ko");
 
 // 해외 지명은 Nominatim이 한자/현지어 표기로만 줄 때가 많아서(예: "上海迪士尼樂園") 사용자가
 // 자기가 찾던 곳이 맞는지 확인하기 어렵다 — 한글이 하나도 없는 결과만 이름을 번역해서
@@ -78,19 +79,25 @@ function dedupe(results) {
   });
 }
 
-// GET /api/geocode?q=검색어 — 카카오(국내, 최대 5개) + Nominatim(전세계, 최대 3개)을 같이 검색해서
-// 후보 목록을 반환. 프론트에서 사용자가 직접 골라서 확정한다(자동으로 첫 결과 찍지 않음).
+// GET /api/geocode?q=검색어 — 카카오(국내, 최대 5개) + Nominatim(전세계)을 같이 검색해서 후보
+// 목록을 반환. 프론트에서 사용자가 직접 골라서 확정한다(자동으로 첫 결과 찍지 않음).
+// 주의: Nominatim은 그 검색어 문자열 자체로만 매칭하는 지오코더라 "도쿄 디즈니랜드"처럼 한글로
+// 검색하면 실제 데이터가 현지어(東京ディズニーランド)로 들어있어서 0건이 나온다 — 그래서 원문
+// 검색과 별개로 검색어를 영어로 번역한 버전으로도 같이 검색해서 결과를 합친다("Tokyo Disneyland"로
+// 검색하면 찾아지는 것과 동일한 효과). 이게 "해외 검색이 잘 안 잡힌다"는 문제의 실제 원인이었음.
 app.get("/", async (c) => {
   const q = c.req.query("q");
   if (!q?.trim()) return c.json({ error: "q는 필수입니다" }, 400);
   const query = q.trim();
+  const englishQuery = await translateText(query, "en");
 
-  const [kakaoResults, nominatimResultsRaw] = await Promise.all([
+  const [kakaoResults, nominatimResultsRaw, nominatimEnResultsRaw] = await Promise.all([
     searchKakaoMulti(query, c.env.KAKAO_REST_API_KEY, 5),
-    searchNominatimMulti(query, 3),
+    searchNominatimMulti(query, 6),
+    englishQuery ? searchNominatimMulti(englishQuery, 6) : Promise.resolve([]),
   ]);
-  const nominatimResults = await translateForeignResults(nominatimResultsRaw);
-  const results = dedupe([...kakaoResults, ...nominatimResults]).slice(0, 7);
+  const nominatimResults = await translateForeignResults([...nominatimResultsRaw, ...nominatimEnResultsRaw]);
+  const results = dedupe([...kakaoResults, ...nominatimResults]).slice(0, 9);
   if (results.length === 0) return c.json({ error: "검색 결과가 없습니다" }, 404);
   return c.json({ results });
 });
