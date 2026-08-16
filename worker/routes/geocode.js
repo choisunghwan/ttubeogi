@@ -60,30 +60,33 @@ async function translateToKoreanRetry(text) {
   return (await translateText(text, "ko")) || (await translateText(text, "ko"));
 }
 
+// 해외 지명은 Nominatim이 한자/현지어 표기로만 줄 때가 많아서(예: "上海迪士尼樂園") 사용자가
+// 자기가 찾던 곳이 맞는지 확인하기 어렵다 — 한글이 하나도 없는 이름/주소를 번역해서 보여준다.
+//
 // 주소 전체를 통으로 번역시키면 Google이 "촨사신진, 상하이, 중국"처럼 이미 섞여있는 한글 때문에
 // sl=auto 언어 감지가 "이미 한국어"라고 오판해서 정작 번역해야 할 한자 구간을 그대로 남겨버린다
 // (실제로 겪은 문제) — 그래서 주소를 쉼표 단위로 쪼개서 한글이 없는 조각만 각각 번역한다.
-// 이미 한글인 조각(행정구역명 등, Nominatim이 accept-language=ko로 이미 번역해준 부분)은 그대로 둬서
-// 다시 번역하다가 깨지는 일이 없게 한다.
-async function translateAddressSegments(address) {
-  if (!address) return address;
-  const segments = address.split(", ");
-  const translated = await Promise.all(segments.map(async (seg) => {
-    if (!seg || hasHangul(seg)) return seg;
-    return (await translateToKoreanRetry(seg)) || seg;
-  }));
-  return translated.join(", ");
-}
-
-// 해외 지명은 Nominatim이 한자/현지어 표기로만 줄 때가 많아서(예: "上海迪士尼樂園") 사용자가
-// 자기가 찾던 곳이 맞는지 확인하기 어렵다 — 한글이 하나도 없는 이름은 번역해서
-// "한글 번역 (원문)" 형태로, 주소도 조각별로 번역해서 전체가 읽히게 보여준다.
+//
+// 라벨(label)은 거의 항상 주소의 첫 조각(display_name.split(",")[0])과 똑같은 문자열이다 —
+// 그런데도 라벨을 따로 또 번역 요청하면, 같은 텍스트를 짧은 시간에 두 번 따로 호출하는 셈이라
+// 키 없는 비공식 번역 엔드포인트가 레이트리밋에 걸려 "주소는 번역됐는데 라벨만 원문으로 남는"
+// 불일치가 실제로 발생했다. 그래서 주소 조각을 먼저 번역한 다음, 라벨과 같은 조각이면 그 번역
+// 결과를 그대로 재사용하고, 다를 때만 라벨을 별도로 번역한다.
 async function translateForeignResults(results) {
   return Promise.all(results.map(async (r) => {
-    const [translatedLabel, translatedAddress] = await Promise.all([
-      hasHangul(r.label) ? null : translateToKoreanRetry(r.label),
-      translateAddressSegments(r.address),
-    ]);
+    const segments = r.address ? r.address.split(", ") : [];
+    const translatedSegments = await Promise.all(segments.map(async (seg) => {
+      if (!seg || hasHangul(seg)) return { original: seg, translated: null };
+      return { original: seg, translated: await translateToKoreanRetry(seg) };
+    }));
+    const translatedAddress = translatedSegments.map((s) => s.translated || s.original).join(", ");
+
+    let translatedLabel = null;
+    if (!hasHangul(r.label)) {
+      const reused = translatedSegments.find((s) => s.original === r.label);
+      translatedLabel = reused ? reused.translated : await translateToKoreanRetry(r.label);
+    }
+
     return {
       ...r,
       label: translatedLabel ? `${translatedLabel} (${r.label})` : r.label,
