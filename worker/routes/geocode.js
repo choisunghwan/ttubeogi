@@ -21,48 +21,71 @@ async function searchKakaoMulti(query, apiKey, limit) {
 // 카카오 로컬 API는 국내 검색만 되기 때문에("상하이"를 쳐도 국내에 있는 "상하이"라는 이름의
 // 식당만 찾아줌) 해외 지명은 항상 Nominatim(전세계 커버)도 같이 붙여서 진짜 도시가 후보에
 // 뜨게 한다 — 국내/해외 어느 쪽이든 사용자가 목록에서 직접 골라서 확인.
+// 한 번의 검색 요청에서 원문+영문 두 버전을 동시에 Nominatim에 쏘다 보니(아래 app.get 참고)
+// 순간적으로 요청이 겹쳐서 그런지, 가끔 한쪽(또는 양쪽) 호출이 실패해서 검색 결과가 통째로
+// 0건이 되는 경우가 관찰됨 — 번역 재시도와 같은 이유로 최대 2번까지 재시도한다.
 async function searchNominatimMulti(query, limit) {
   // accept-language=ko: 한자/현지어 표기(예: 上海市) 대신 한국어 지명(상하이)으로 받아서 더 읽기 쉽게.
   const url = `https://nominatim.openstreetmap.org/search?format=json&limit=${limit}&q=${encodeURIComponent(query)}&accept-language=ko`;
-  // Nominatim 사용 정책: User-Agent 필수, 초당 1요청 권장 (개인/소규모 사용 기준 OK).
-  const res = await fetch(url, { headers: { "User-Agent": "Ttubeogi/0.1 (personal travel planning app)" } });
-  if (!res.ok) return [];
-  const results = await res.json();
-  return (results || []).map((hit) => ({
-    lat: Number(hit.lat), lng: Number(hit.lon),
-    label: hit.display_name.split(",")[0],
-    address: hit.display_name,
-    source: "nominatim",
-  }));
+  for (let i = 0; i < 2; i++) {
+    try {
+      // Nominatim 사용 정책: User-Agent 필수, 초당 1요청 권장 (개인/소규모 사용 기준 OK).
+      const res = await fetch(url, { headers: { "User-Agent": "Ttubeogi/0.1 (personal travel planning app)" } });
+      if (!res.ok) continue;
+      const results = await res.json();
+      return (results || []).map((hit) => ({
+        lat: Number(hit.lat), lng: Number(hit.lon),
+        label: hit.display_name.split(",")[0],
+        address: hit.display_name,
+        source: "nominatim",
+      }));
+    } catch {
+      // 다음 시도로 넘어감
+    }
+  }
+  return [];
 }
 
 function hasHangul(text) {
   return /[가-힣]/.test(text);
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 // 키 없이 쓸 수 있는 구글 번역 비공식 엔드포인트 — 짧은 문자열 하나 번역하는 정도의 가벼운
 // 용도라 무료로 충분함. 실패해도(네트워크 오류 등) null 반환해서 원문을 그대로 쓰게 한다.
+// 429(레이트리밋)일 때만 티가 나게 status를 같이 반환 — 재시도 쪽에서 딜레이를 넣을지 판단용.
 async function translateText(text, targetLang, sourceLang = "auto") {
-  if (!text) return null;
+  if (!text) return { text: null, rateLimited: false };
   try {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) return { text: null, rateLimited: res.status === 429 };
     const data = await res.json();
     const joined = data[0]?.map((chunk) => chunk[0]).join("") || null;
-    return joined && joined.toLowerCase() !== text.toLowerCase() ? joined : null;
+    const translated = joined && joined.toLowerCase() !== text.toLowerCase() ? joined : null;
+    return { text: translated, rateLimited: false };
   } catch {
-    return null;
+    return { text: null, rateLimited: false };
   }
 }
-// 번역 API가 키 없는 비공식 엔드포인트라 가끔 실패한다(특히 한 요청 안에서 여러 조각을 한꺼번에
-// 병렬로 부르면 순간적으로 레이트리밋에 걸리는 걸로 보임) — 최대 3번까지 시도해서 성공률을 높인다.
-async function translateToKoreanRetry(text) {
+// 번역 API가 키 없는 비공식 엔드포인트라 가끔 429(레이트리밋)로 실패한다 — 재시도를 곧바로
+// 연달아 쏘면 같은 레이트리밋 구간 안에 다 걸려서 재시도 자체가 무의미해지므로, 429를 받으면
+// 잠깐 쉬었다가 재시도한다. 검색어를 영어로 번역하는 단계(아래 app.get)에도 똑같이 쓴다 —
+// 이 번역이 실패하면 해외 지명 검색이 통째로 0건이 되어버리기 때문에(Nominatim이 한글 쿼리를
+// 못 찾음) 여기도 재시도가 필요함.
+async function translateRetry(text, targetLang) {
   for (let i = 0; i < 3; i++) {
-    const result = await translateText(text, "ko");
+    const { text: result, rateLimited } = await translateText(text, targetLang);
     if (result) return result;
+    if (rateLimited) await sleep(300 * (i + 1));
   }
   return null;
+}
+async function translateToKoreanRetry(text) {
+  return translateRetry(text, "ko");
 }
 
 // 해외 지명은 Nominatim이 한자/현지어 표기로만 줄 때가 많아서(예: "上海迪士尼樂園") 사용자가
@@ -120,7 +143,7 @@ app.get("/", async (c) => {
   const q = c.req.query("q");
   if (!q?.trim()) return c.json({ error: "q는 필수입니다" }, 400);
   const query = q.trim();
-  const englishQuery = await translateText(query, "en");
+  const englishQuery = await translateRetry(query, "en");
 
   const [kakaoResults, nominatimResultsRaw, nominatimEnResultsRaw] = await Promise.all([
     searchKakaoMulti(query, c.env.KAKAO_REST_API_KEY, 5),
