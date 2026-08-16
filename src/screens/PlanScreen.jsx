@@ -8,6 +8,7 @@ import { WalkTtubeogi } from "../components/TtubeogiCharacter";
 import ItemFormModal from "../components/ItemFormModal";
 import CopyItemModal from "../components/CopyItemModal";
 import EditPlanModal from "../components/EditPlanModal";
+import HelpGuideModal from "../components/HelpGuideModal";
 import PlanMap from "../components/PlanMap";
 import ItemRow from "../components/ItemRow";
 import TicketCard from "../components/TicketCard";
@@ -96,6 +97,7 @@ export default function PlanScreen() {
   const [copied, setCopied] = useState(false);
   const [viewTab, setViewTab] = useState("list"); // "list" | "map"
   const [editingPlan, setEditingPlan] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [highlightItemId, setHighlightItemId] = useState(null);
   const [preOptimizeOrder, setPreOptimizeOrder] = useState(null); // { dayId, itemIds } | null — 동선 최적화 직전 순서(되돌리기용)
 
@@ -276,7 +278,10 @@ export default function PlanScreen() {
     <div style={s.pad}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <button style={s.backBtn} onClick={() => navigate("/")}>◀ 홈</button>
-        <button style={s.itemRowActionBtn} title="일정 수정·삭제" onClick={() => setEditingPlan(true)}>✎</button>
+        <div style={{ display: "flex", gap: 6 }}>
+          <button style={s.itemRowActionBtn} title="사용법 보기" onClick={() => setShowHelp(true)}>?</button>
+          <button style={s.itemRowActionBtn} title="일정 수정·삭제" onClick={() => setEditingPlan(true)}>✎</button>
+        </div>
       </div>
 
       <div style={s.tripHead}>
@@ -444,6 +449,8 @@ export default function PlanScreen() {
           onDeleted={() => navigate("/")}
         />
       )}
+
+      {showHelp && <HelpGuideModal onClose={() => setShowHelp(false)} />}
     </div>
   );
 }
