@@ -302,7 +302,7 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
             </div>
           ) : (
             <label style={s.attachmentPickBtn}>
-              <PaperclipIcon size={15} color={C.muted} /> 사진 또는 PDF 첨부
+              <PaperclipIcon size={15} color={C.textMuted} /> 사진 또는 PDF 첨부
               <input type="file" accept="image/*,application/pdf" onChange={handlePickFile} style={{ display: "none" }} />
             </label>
           )}

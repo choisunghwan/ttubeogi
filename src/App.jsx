@@ -19,10 +19,10 @@ function TabBar() {
   return (
     <div style={s.tabbar}>
       <button style={{ ...s.tabBtn, ...(tab === "home" ? s.tabOn : {}) }} onClick={() => navigate("/")}>
-        <span style={s.tabIcon}><PlaneBadgeIcon size={17} color={tab === "home" ? C.orangeDeep : C.muted} /></span> 일정
+        <span style={s.tabIcon}><PlaneBadgeIcon size={17} color={tab === "home" ? C.orangeDeep : C.textMuted} /></span> 일정
       </button>
       <button style={{ ...s.tabBtn, ...(tab === "calendar" ? s.tabOn : {}) }} onClick={() => navigate("/calendar")}>
-        <span style={s.tabIcon}><CalendarIcon size={18} color={tab === "calendar" ? C.orangeDeep : C.muted} /></span> 캘린더
+        <span style={s.tabIcon}><CalendarIcon size={18} color={tab === "calendar" ? C.orangeDeep : C.textMuted} /></span> 캘린더
       </button>
     </div>
   );

@@ -109,7 +109,7 @@ export default function CalendarScreen() {
 
       <div style={s.calGrid}>
         {WEEKDAY.map((w, i) => (
-          <div key={w} style={{ ...s.calWeekday, color: i === 0 ? SUNDAY_RED : i === 6 ? SATURDAY_BLUE : C.muted }}>{w}</div>
+          <div key={w} style={{ ...s.calWeekday, color: i === 0 ? SUNDAY_RED : i === 6 ? SATURDAY_BLUE : C.textMuted }}>{w}</div>
         ))}
         {cells.map((d, i) => {
           if (d === null) return <div key={`empty-${i}`} />;
@@ -136,7 +136,7 @@ export default function CalendarScreen() {
               {dayPlans.length > 0 && (
                 <div style={s.calDots}>
                   {dayPlans.slice(0, 3).map((p) => (
-                    <span key={p.id} style={{ ...s.calDot, background: p.status === "past" ? C.muted : C.gold }} />
+                    <span key={p.id} style={{ ...s.calDot, background: p.status === "past" ? C.textMuted : C.gold }} />
                   ))}
                 </div>
               )}

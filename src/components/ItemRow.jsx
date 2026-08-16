@@ -54,7 +54,7 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
             ),
             item.move && (
               <span key="move" style={{ display: "inline-flex", alignItems: "center", gap: 3 }} title="다음 장소까지 이동수단">
-                다음 <MoveIcon move={item.move} size={13} color={C.muted} /> {item.move}
+                다음 <MoveIcon move={item.move} size={13} color={C.textMuted} /> {item.move}
               </span>
             ),
             attribution && (
@@ -76,7 +76,7 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
             )}
             {item.voucher && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-                <TicketIcon size={13} color={C.muted} /> {item.voucher}
+                <TicketIcon size={13} color={C.textMuted} /> {item.voucher}
               </span>
             )}
             {item.attachmentName && (

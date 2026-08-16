@@ -67,7 +67,7 @@ const ICONS = {
   도보: Walk, 자차: Car, 택시: Car, 버스: Bus, 지하철: Train, 트램: Train, 기차: Train, 항공: Plane,
 };
 
-export default function MoveIcon({ move, size = 15, color = C.muted }) {
+export default function MoveIcon({ move, size = 15, color = C.textMuted }) {
   const Icon = ICONS[move] || Etc;
   return <Icon size={size} color={color} />;
 }

@@ -78,7 +78,7 @@ export default function MyPageScreen() {
       {me === null && (
         <div style={s.joinCard}>
           <WalkTtubeogi size={40} />
-          <div style={{ margin: "12px 0 16px", color: C.muted, fontSize: 14, lineHeight: 1.5 }}>
+          <div style={{ margin: "12px 0 16px", color: C.textMuted, fontSize: 14, lineHeight: 1.5 }}>
             로그인하면 닉네임을 직접 정할 수 있고,<br />기기를 바꿔도 내 일정이 계속 보여요.
           </div>
           <a href={KAKAO_LOGIN_URL} style={{ display: "block", width: "100%" }}>
@@ -96,7 +96,7 @@ export default function MyPageScreen() {
             <div style={{ ...s.profileDot, width: 52, height: 52, fontSize: 20 }}>{me.nickname[0]}</div>
             <div>
               <div style={{ fontSize: 18, fontWeight: 800 }}>{me.nickname}</div>
-              <div style={{ fontSize: 12.5, color: C.muted, display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{ fontSize: 12.5, color: C.textMuted, display: "flex", alignItems: "center", gap: 4 }}>
                 <KakaoDotIcon size={12} /> 카카오 로그인됨
               </div>
             </div>

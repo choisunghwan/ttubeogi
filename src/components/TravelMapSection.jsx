@@ -100,7 +100,7 @@ export default function TravelMapSection() {
                 <span style={s.detailName}>{sel.name}</span>
                 <span style={s.detailVisits}><b style={{ color: C.orangeDeep, fontSize: 20 }}>{sel.visits}</b>번 다녀옴</span>
               </div>
-              <div style={s.detailRow}><span style={s.detailKey}>마지막 방문</span><span>{fmtDate(sel.lastVisit)} <span style={{ color: C.muted }}>· {sinceLabel(sel.lastVisit)}</span></span></div>
+              <div style={s.detailRow}><span style={s.detailKey}>마지막 방문</span><span>{fmtDate(sel.lastVisit)} <span style={{ color: C.textMuted }}>· {sinceLabel(sel.lastVisit)}</span></span></div>
               <div style={s.detailRow}><span style={s.detailKey}>다녀온 일정</span><span>{sel.planTitles.join(" · ")}</span></div>
             </div>
           ) : (
@@ -110,14 +110,14 @@ export default function TravelMapSection() {
           {overseas.length > 0 && (
             <div style={{ ...s.detail, marginTop: 0 }}>
               <div style={{ ...s.detailKey, marginBottom: 8, display: "flex", alignItems: "center", gap: 5 }}>
-                <GlobeIcon size={13} color={C.muted} /> 해외 (지도 밖 지역이라 목록으로 모아둠)
+                <GlobeIcon size={13} color={C.textMuted} /> 해외 (지도 밖 지역이라 목록으로 모아둠)
               </div>
               {overseas.map((p) => (
                 <div key={p.id} style={s.detailRow}>
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                     <PlaneBadgeIcon size={12} color={C.orangeDeep} /> {p.title}{p.region ? ` · ${p.region}` : ""}
                   </span>
-                  <span style={{ color: C.muted }}>{fmtDate(p.endDate)}</span>
+                  <span style={{ color: C.textMuted }}>{fmtDate(p.endDate)}</span>
                 </div>
               ))}
             </div>

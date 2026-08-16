@@ -92,7 +92,7 @@ export default function HomeScreen() {
 
       <div style={s.homeGreeting}>
         어디, 누구랑 갈까요?<br />
-        <span style={{ color: C.muted, fontSize: 14, fontWeight: 500 }}>
+        <span style={{ color: C.textMuted, fontSize: 14, fontWeight: 500 }}>
           여행이든 데이트든, 같이 만들어요
         </span>
       </div>

@@ -49,7 +49,7 @@ function JoinGate({ planId, onJoined }) {
 
         {me ? (
           <>
-            <div style={{ color: C.muted, fontSize: 13.5, marginBottom: 8 }}>
+            <div style={{ color: C.textMuted, fontSize: 13.5, marginBottom: 8 }}>
               {me.nickname}님으로 참여할게요.
             </div>
             {error && <div style={s.formError}>{error}</div>}
@@ -60,7 +60,7 @@ function JoinGate({ planId, onJoined }) {
           </>
         ) : (
           <>
-            <div style={{ color: C.muted, fontSize: 13.5, marginBottom: 8 }}>
+            <div style={{ color: C.textMuted, fontSize: 13.5, marginBottom: 8 }}>
               로그인 없이 이름만 입력하면 바로 같이 만들 수 있어요.
             </div>
             <form onSubmit={(e) => { e.preventDefault(); if (name.trim()) join(name.trim()); }}>
@@ -293,7 +293,7 @@ export default function PlanScreen() {
           ))}
           <div
             title={connected ? "실시간 연결됨" : "연결 끊김 — 재연결 시도 중"}
-            style={{ ...s.liveDot, background: connected ? C.member2 : C.muted, animation: connected ? s.liveDot.animation : "none" }}
+            style={{ ...s.liveDot, background: connected ? C.member2 : C.textMuted, animation: connected ? s.liveDot.animation : "none" }}
           />
         </div>
       </div>
