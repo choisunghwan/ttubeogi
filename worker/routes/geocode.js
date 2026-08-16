@@ -55,17 +55,40 @@ async function translateText(text, targetLang, sourceLang = "auto") {
     return null;
   }
 }
-const translateToKorean = (text) => translateText(text, "ko");
+// 번역 API가 키 없는 비공식 엔드포인트라 가끔 실패한다 — 한 번 더 시도해서 성공률을 높인다.
+async function translateToKoreanRetry(text) {
+  return (await translateText(text, "ko")) || (await translateText(text, "ko"));
+}
+
+// 주소 전체를 통으로 번역시키면 Google이 "촨사신진, 상하이, 중국"처럼 이미 섞여있는 한글 때문에
+// sl=auto 언어 감지가 "이미 한국어"라고 오판해서 정작 번역해야 할 한자 구간을 그대로 남겨버린다
+// (실제로 겪은 문제) — 그래서 주소를 쉼표 단위로 쪼개서 한글이 없는 조각만 각각 번역한다.
+// 이미 한글인 조각(행정구역명 등, Nominatim이 accept-language=ko로 이미 번역해준 부분)은 그대로 둬서
+// 다시 번역하다가 깨지는 일이 없게 한다.
+async function translateAddressSegments(address) {
+  if (!address) return address;
+  const segments = address.split(", ");
+  const translated = await Promise.all(segments.map(async (seg) => {
+    if (!seg || hasHangul(seg)) return seg;
+    return (await translateToKoreanRetry(seg)) || seg;
+  }));
+  return translated.join(", ");
+}
 
 // 해외 지명은 Nominatim이 한자/현지어 표기로만 줄 때가 많아서(예: "上海迪士尼樂園") 사용자가
-// 자기가 찾던 곳이 맞는지 확인하기 어렵다 — 한글이 하나도 없는 결과만 이름을 번역해서
-// "한글 번역 (원문)" 형태로 보여준다. 주소는 현지어/한자가 섞인 문자열이라 통번역이 오히려
-// 더 헷갈리게 만들어서(고유명사 오역, 이미 한글인 행정구역명까지 다시 깨짐) 그대로 둔다.
+// 자기가 찾던 곳이 맞는지 확인하기 어렵다 — 한글이 하나도 없는 이름은 번역해서
+// "한글 번역 (원문)" 형태로, 주소도 조각별로 번역해서 전체가 읽히게 보여준다.
 async function translateForeignResults(results) {
   return Promise.all(results.map(async (r) => {
-    if (hasHangul(r.label)) return r;
-    const translatedLabel = await translateToKorean(r.label);
-    return translatedLabel ? { ...r, label: `${translatedLabel} (${r.label})` } : r;
+    const [translatedLabel, translatedAddress] = await Promise.all([
+      hasHangul(r.label) ? null : translateToKoreanRetry(r.label),
+      translateAddressSegments(r.address),
+    ]);
+    return {
+      ...r,
+      label: translatedLabel ? `${translatedLabel} (${r.label})` : r.label,
+      address: translatedAddress,
+    };
   }));
 }
 
