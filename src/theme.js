@@ -11,6 +11,9 @@ export const C = {
   // 티켓 스텁 배경(그라데이션 두 톤)·상태 뱃지 배경·구분선 — 이것도 리터럴로 두면 테마를 바꿔도
   // 티켓 카드 안쪽(스텁·뱃지)만 예전 웜톤 그대로 남아서 "티켓 색은 안 바뀐다"는 인상을 준다.
   panel1: "var(--c-panel-1)", panel2: "var(--c-panel-2)", pillBg: "var(--c-pill-bg)", divider: "var(--c-divider)",
+  // 카드 테두리(border)·인풋 테두리(borderStrong)·버튼 칩 배경(chipBg) — 여기도 리터럴로 두면
+  // 배경/악센트는 테마별로 바뀌는데 입력창·비활성 탭·아이콘 버튼 테두리·배경만 예전 웜톤 그대로 남는다.
+  border: "var(--c-border-soft)", borderStrong: "var(--c-border)", chipBg: "var(--c-chip-bg)",
   routeDone: "#c2b8a3", member2: "#5b8c7b", member3: "#7a6cc4",
   // 보딩패스(홈 카드) 등 "고급스러운" 톤이 필요한 곳에 쓰는 금박 느낌 트림 컬러(기본은 골드, 테마에 따라 스틸 톤 등으로 바뀜).
   gold: "var(--c-gold)", goldLight: "var(--c-gold-light)", goldDeep: "var(--c-gold-deep)", navy: "#1f2a3a",
@@ -26,6 +29,7 @@ export const THEMES = [
       "--c-orange": "#c97a42", "--c-orange-deep": "#a8592a",
       "--c-gold": "#b8934a", "--c-gold-light": "#d9bd80", "--c-gold-deep": "#8f6f34",
       "--c-panel-1": "#fffaf0", "--c-panel-2": "#fbf3e2", "--c-pill-bg": "#fbecd9", "--c-divider": "#f0ebe0",
+      "--c-border": "#e2dac6", "--c-border-soft": "#efe9dc", "--c-chip-bg": "#f2ede0",
       "--c-shadow-upcoming": "rgba(201,122,66,.3)", "--c-shadow-hot": "rgba(184,147,74,.22)", "--c-shadow-fab": "rgba(168,89,42,.4)",
     },
   },
@@ -36,6 +40,7 @@ export const THEMES = [
       "--c-orange": "#2c4867", "--c-orange-deep": "#1e3550",
       "--c-gold": "#b8934a", "--c-gold-light": "#d9bd80", "--c-gold-deep": "#8f6f34",
       "--c-panel-1": "#f8f8f4", "--c-panel-2": "#eef0e9", "--c-pill-bg": "#e6ebf1", "--c-divider": "#e2e4de",
+      "--c-border": "#d5d8d0", "--c-border-soft": "#e3e5df", "--c-chip-bg": "#e9ebe5",
       "--c-shadow-upcoming": "rgba(44,72,103,.3)", "--c-shadow-hot": "rgba(184,147,74,.22)", "--c-shadow-fab": "rgba(30,53,80,.4)",
     },
   },
@@ -46,6 +51,7 @@ export const THEMES = [
       "--c-orange": "#6e2230", "--c-orange-deep": "#57121d",
       "--c-gold": "#b8934a", "--c-gold-light": "#d9bd80", "--c-gold-deep": "#8f6f34",
       "--c-panel-1": "#faf5f2", "--c-panel-2": "#f4e8e2", "--c-pill-bg": "#f3e2e5", "--c-divider": "#ece1dc",
+      "--c-border": "#ddd0ca", "--c-border-soft": "#ece2de", "--c-chip-bg": "#f0e4e0",
       "--c-shadow-upcoming": "rgba(110,34,48,.3)", "--c-shadow-hot": "rgba(184,147,74,.22)", "--c-shadow-fab": "rgba(87,18,29,.4)",
     },
   },
@@ -56,6 +62,7 @@ export const THEMES = [
       "--c-orange": "#0f3a7a", "--c-orange-deep": "#0a2c5e",
       "--c-gold": "#5c6a80", "--c-gold-light": "#aebbcf", "--c-gold-deep": "#3a5480",
       "--c-panel-1": "#f3f5f9", "--c-panel-2": "#e7ecf3", "--c-pill-bg": "#e4eaf1", "--c-divider": "#dde3ea",
+      "--c-border": "#ccd3dd", "--c-border-soft": "#dde3ea", "--c-chip-bg": "#e4e9f0",
       "--c-shadow-upcoming": "rgba(15,58,122,.3)", "--c-shadow-hot": "rgba(92,106,128,.22)", "--c-shadow-fab": "rgba(10,44,94,.4)",
     },
   },
