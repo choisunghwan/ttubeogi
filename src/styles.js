@@ -316,6 +316,7 @@ export const s = {
   itemRowActions: { display: "flex", gap: 6, flexShrink: 0 },
   itemRowActionBtn: { border: "none", background: C.chipBg, color: C.textMuted, width: 28, height: 28,
                       borderRadius: 8, cursor: "pointer", fontSize: 13 },
+  itemRowActionBtnOn: { background: C.pillBg, color: C.orangeDeep },
   dragHandle: { border: "none", background: "transparent", color: C.muted, fontSize: 18, lineHeight: 1,
                 cursor: "grab", padding: "0 4px 0 0", flexShrink: 0, touchAction: "none" },
   // "티켓" 탭 카드 — ItemRow와 비슷하지만 드래그 핸들 없는 보기 전용.

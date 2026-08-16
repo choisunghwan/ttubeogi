@@ -6,7 +6,7 @@ import { PaperclipIcon } from "./Icons";
 
 const MAX_ATTACHMENT_MB = 8;
 
-const MOVE_OPTIONS = ["도보", "지하철", "버스", "트램", "택시", "자차", "항공", "기타"];
+const MOVE_OPTIONS = ["도보", "지하철", "기차", "버스", "트램", "택시", "자차", "항공", "기타"];
 const HOURS_12 = Array.from({ length: 12 }, (_, i) => i + 1); // 1~12
 const MINUTES = ["00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"];
 

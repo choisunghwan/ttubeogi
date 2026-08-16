@@ -12,7 +12,7 @@ import PlanMap from "../components/PlanMap";
 import ItemRow from "../components/ItemRow";
 import TicketCard from "../components/TicketCard";
 import { ListIcon, MapPinIcon, TicketIcon, ShareIcon, RouteIcon } from "../components/Icons";
-import { getPlan, joinPlan, deleteItem, reorderItems } from "../lib/api";
+import { getPlan, joinPlan, deleteItem, reorderItems, updateItem } from "../lib/api";
 import { optimizeRouteOrder } from "../lib/routeOptimize";
 import { getMemberId, rememberPlan } from "../lib/localPlans";
 import { formatWhen, formatDday } from "../utils";
@@ -97,6 +97,7 @@ export default function PlanScreen() {
   const [viewTab, setViewTab] = useState("list"); // "list" | "map"
   const [editingPlan, setEditingPlan] = useState(false);
   const [highlightItemId, setHighlightItemId] = useState(null);
+  const [preOptimizeOrder, setPreOptimizeOrder] = useState(null); // { dayId, itemIds } | null — 동선 최적화 직전 순서(되돌리기용)
 
   // 지도에서 마커를 탭했을 때 "이 일정으로 가기" — 리스트 탭으로 바꾸고 해당 행으로 스크롤 + 잠깐 강조.
   function goToItem(itemId) {
@@ -192,6 +193,21 @@ export default function PlanScreen() {
     }
   }
 
+  async function applyReorder(dayId, reordered) {
+    setPlan((prev) => ({
+      ...prev,
+      days: prev.days.map((d) => (d.id === dayId ? { ...d, items: reordered } : d)),
+    }));
+    try {
+      await reorderItems(planId, dayId, reordered.map((i) => i.id));
+      return true;
+    } catch (e) {
+      window.alert(e.message);
+      reload(); // 실패하면 서버 상태로 되돌림
+      return false;
+    }
+  }
+
   async function handleDragEnd(event) {
     const { active, over } = event;
     if (!over || active.id === over.id || !selectedDay) return;
@@ -201,44 +217,55 @@ export default function PlanScreen() {
     const reordered = arrayMove(selectedDay.items, oldIndex, newIndex);
 
     // 서버 응답 기다리지 않고 먼저 화면부터 바꿔서 드래그가 즉각 반영된 것처럼 보이게 함.
-    setPlan((prev) => ({
-      ...prev,
-      days: prev.days.map((d) => (d.id === selectedDay.id ? { ...d, items: reordered } : d)),
-    }));
-
-    try {
-      await reorderItems(planId, selectedDay.id, reordered.map((i) => i.id));
-    } catch (e) {
-      window.alert(e.message);
-      reload(); // 실패하면 서버 상태로 되돌림
-    }
+    await applyReorder(selectedDay.id, reordered);
+    // 동선 최적화 이후에 수동으로 또 순서를 바꿨으면, "최적화 이전으로 되돌리기"는
+    // 더 이상 사용자가 기대하는 의미가 아니게 되므로 되돌리기 상태를 지운다.
+    setPreOptimizeOrder((prev) => (prev?.dayId === selectedDay.id ? null : prev));
   }
 
-  // 좌표가 있는 항목만 최근접 이웃 + 2-opt로 동선을 계산해서 재배열한다. 좌표가 없는 항목(메모성
-  // 일정 등)은 원래 있던 자리 그대로 두고, 좌표 있는 항목들만 그 자리들에 새 순서로 채워 넣는다 —
-  // 좌표 없는 항목이 최적화 때문에 엉뚱한 위치로 튀는 걸 막기 위함. 첫 좌표 항목은 출발점으로
-  // 고정(보통 숙소/집이라 사용자가 그대로 유지하고 싶어할 확률이 높음).
+  // 좌표가 있고 고정(pinned)되지 않은 항목만 최근접 이웃 + 2-opt로 동선을 계산해서 재배열한다.
+  // 좌표가 없는 항목(메모성 일정 등)이나 사용자가 고정한 항목은 원래 있던 자리 그대로 두고,
+  // 나머지 항목들만 그 자리들에 새 순서로 채워 넣는다 — 고정 항목이 최적화 때문에 엉뚱한
+  // 위치로 튀는 걸 막기 위함. 고정된 게 없으면 첫 좌표 항목이 자동으로 출발점처럼 유지된다
+  // (보통 숙소/집이라 사용자가 그대로 유지하고 싶어할 확률이 높음).
   async function handleOptimizeRoute() {
     if (!selectedDay) return;
-    const geocoded = selectedDay.items.filter((it) => it.lat != null && it.lng != null);
-    if (geocoded.length < 3) {
-      window.alert("좌표가 있는 일정이 3개 이상일 때 동선을 최적화할 수 있어요.");
+    const movable = selectedDay.items.filter((it) => it.lat != null && it.lng != null && !it.pinned);
+    if (movable.length < 3) {
+      window.alert("좌표가 있고 고정되지 않은 일정이 3개 이상일 때 동선을 최적화할 수 있어요.");
       return;
     }
-    if (!window.confirm("현재 순서를 이동 거리가 최소가 되는 순서로 재배열할까요?")) return;
+    if (!window.confirm("현재 순서를 이동 거리가 최소가 되는 순서로 재배열할까요? (고정된 항목은 그대로 유지돼요)")) return;
 
-    const optimizedQueue = optimizeRouteOrder(geocoded);
+    const beforeIds = selectedDay.items.map((i) => i.id);
+    const optimizedQueue = optimizeRouteOrder(movable);
     const reordered = selectedDay.items.map((it) =>
-      it.lat != null && it.lng != null ? optimizedQueue.shift() : it
+      it.lat != null && it.lng != null && !it.pinned ? optimizedQueue.shift() : it
     );
 
+    const ok = await applyReorder(selectedDay.id, reordered);
+    if (ok) setPreOptimizeOrder({ dayId: selectedDay.id, itemIds: beforeIds });
+  }
+
+  async function handleUndoOptimize() {
+    if (!preOptimizeOrder || !selectedDay || preOptimizeOrder.dayId !== selectedDay.id) return;
+    const byId = new Map(selectedDay.items.map((it) => [it.id, it]));
+    const restored = preOptimizeOrder.itemIds.map((id) => byId.get(id)).filter(Boolean);
+    if (restored.length !== selectedDay.items.length) { setPreOptimizeOrder(null); return; }
+    const ok = await applyReorder(selectedDay.id, restored);
+    if (ok) setPreOptimizeOrder(null);
+  }
+
+  async function handleTogglePin(item) {
     setPlan((prev) => ({
       ...prev,
-      days: prev.days.map((d) => (d.id === selectedDay.id ? { ...d, items: reordered } : d)),
+      days: prev.days.map((d) => ({
+        ...d,
+        items: d.items.map((it) => (it.id === item.id ? { ...it, pinned: !it.pinned } : it)),
+      })),
     }));
-
     try {
-      await reorderItems(planId, selectedDay.id, reordered.map((i) => i.id));
+      await updateItem(planId, item.id, { pinned: !item.pinned });
     } catch (e) {
       window.alert(e.message);
       reload();
@@ -340,10 +367,22 @@ export default function PlanScreen() {
             <div style={s.emptyState}>아직 추가된 일정이 없어요.<br />첫 항목을 추가해보세요!</div>
           )}
 
-          {selectedDay.items.filter((it) => it.lat != null && it.lng != null).length >= 3 && (
-            <button style={s.optimizeRouteBtn} onClick={handleOptimizeRoute}>
-              <RouteIcon size={14} color={C.orangeDeep} /> 동선 최적화
-            </button>
+          {(selectedDay.items.filter((it) => it.lat != null && it.lng != null && !it.pinned).length >= 3
+            || preOptimizeOrder?.dayId === selectedDay.id) && (
+            <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+              {selectedDay.items.filter((it) => it.lat != null && it.lng != null && !it.pinned).length >= 3 && (
+                <button style={{ ...s.optimizeRouteBtn, marginBottom: 0, flex: 1 }} onClick={handleOptimizeRoute}>
+                  <RouteIcon size={14} color={C.orangeDeep} /> 동선 최적화
+                </button>
+              )}
+              {preOptimizeOrder?.dayId === selectedDay.id && (
+                <button style={{ ...s.optimizeRouteBtn, marginBottom: 0, flex: "0 0 auto", padding: "11px 14px",
+                                  background: "#fff", color: C.textMuted, border: `1.5px solid ${C.borderStrong}` }}
+                        onClick={handleUndoOptimize}>
+                  되돌리기
+                </button>
+              )}
+            </div>
           )}
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -361,6 +400,7 @@ export default function PlanScreen() {
                   onEdit={() => setModalState({ item })}
                   onDelete={() => handleDelete(item)}
                   onCopy={() => setCopyingItem(item)}
+                  onTogglePin={() => handleTogglePin(item)}
                 />
               ))}
             </SortableContext>

@@ -168,6 +168,7 @@ app.get("/:id", async (c) => {
         itemStatus: it.item_status,
         createdBy: it.created_by,
         updatedBy: it.updated_by,
+        pinned: !!it.pinned,
       });
     }
   }
@@ -413,7 +414,7 @@ app.patch("/:id/days/:dayId/reorder", async (c) => {
 const PATCHABLE_FIELDS = {
   type: "type", time: "time", name: "name", query: "query", lat: "lat", lng: "lng",
   mapLink: "map_link", move: "move", flightNo: "flight_no", voucher: "voucher", memo: "detail",
-  itemStatus: "item_status",
+  itemStatus: "item_status", pinned: "pinned",
 };
 app.patch("/:id/items/:itemId", async (c) => {
   const { id, itemId } = c.req.param();
@@ -441,7 +442,8 @@ app.patch("/:id/items/:itemId", async (c) => {
   for (const [key, column] of Object.entries(PATCHABLE_FIELDS)) {
     if (key in body) {
       sets.push(`${column} = ?`);
-      values.push(body[key]);
+      // D1 바인딩은 boolean을 안 받아서(에러남) pinned는 0/1로 명시 변환.
+      values.push(key === "pinned" ? (body[key] ? 1 : 0) : body[key]);
     }
   }
   if (sets.length === 0) return c.json({ error: "수정할 필드가 없습니다" }, 400);

@@ -99,6 +99,15 @@ export function MapPinIcon({ size = 15, color = "currentColor" }) {
   );
 }
 
+export function LockIcon({ size = 13, color = "currentColor" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <rect x="5" y="11" width="14" height="9" rx="2.2" stroke={color} strokeWidth="1.7" />
+      <path d="M8 11V8a4 4 0 018 0v3" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function RouteIcon({ size = 15, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

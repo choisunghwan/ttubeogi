@@ -44,7 +44,9 @@ function haversineMeters(a, b) {
   const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(h));
 }
-const FALLBACK_SPEED_KMH = { 도보: 4.5, 지하철: 30, 트램: 20, 버스: 20, 택시: 25, 자차: 30, 기타: 15 };
+// 기차(KTX 등 시외/고속철)는 표정속도가 도로 교통수단과 차원이 달라서 (서울-대구 실측
+// 약 1시간 40분 ≈ 시속 150km) 따로 값을 둠 — 지하철(도시철도)과 절대 같은 속도로 취급하면 안 됨.
+const FALLBACK_SPEED_KMH = { 도보: 4.5, 지하철: 30, 트램: 20, 버스: 20, 택시: 25, 자차: 30, 기차: 150, 기타: 15 };
 
 function walkerIconHtml({ step, facing, walking, size = 40 }) {
   const bob = walking ? (step % 2 === 0 ? -1.5 : 0.5) : 0;
@@ -144,6 +146,7 @@ const MOVE_STYLE = {
   버스: { stepPerFrame: 6, icon: busIconHtml },
   택시: { stepPerFrame: 5, icon: carIconHtml },
   자차: { stepPerFrame: 5, icon: carIconHtml },
+  기차: { stepPerFrame: 9, icon: trainIconHtml },
   // 항공은 직선 고정 48포인트 경로(OSRM 안 씀) — 1은 한 프레임에 점 하나씩만 전진하는
   // 최대 저속(이 경로 방식에서 가능한 가장 느린 속도)으로, 약 49프레임(~800ms) 동안 보임.
   항공: { stepPerFrame: 1, icon: planeIconHtml },
@@ -186,6 +189,14 @@ async function buildRoadPath(points, moves) {
       const b = points[i + 1];
       const move = moves[i];
       if (move === "항공") return { path: interpolateStraight(a, b, i), durationSec: null };
+
+      // 기차는 도로 경로(OSRM driving)로는 실제 철로와 소요시간을 대변할 수 없어서(예: 서울-대구를
+      // 차로 우회하면 3시간 넘지만 KTX는 1시간 40분) 애초에 도로 라우팅을 시도하지 않고 직선거리
+      // + 기차 평균속도로 추정한다. 항공과 달리 기차는 거리 대비 속도가 비교적 일정해서 추정이 유의미함.
+      if (move === "기차") {
+        const distanceM = haversineMeters(a, b);
+        return { path: interpolateStraight(a, b, i), durationSec: (distanceM / 1000 / FALLBACK_SPEED_KMH.기차) * 3600 };
+      }
 
       const profile = move === "도보" ? "foot" : "driving";
       const routeData = await fetchRoute(a, b, profile).catch(() => null);

@@ -4,13 +4,13 @@ import { CSS } from "@dnd-kit/utilities";
 import { s } from "../styles";
 import { TYPES, C, themedColor } from "../theme";
 import MoveIcon from "./MoveIcon";
-import { CalendarIcon, TicketIcon, PlaneBadgeIcon, PaperclipIcon, CopyIcon } from "./Icons";
+import { CalendarIcon, TicketIcon, PlaneBadgeIcon, PaperclipIcon, CopyIcon, LockIcon } from "./Icons";
 import { buildItemICS, downloadICS } from "../lib/ics";
 import { attachmentUrl } from "../lib/api";
 
 // 드래그 핸들만 dnd-kit 리스너를 붙인다 — 행 전체를 드래그 대상으로 하면
 // ✎/🗑 탭이나 스크롤 제스처와 자꾸 충돌해서, 잡을 수 있는 손잡이를 따로 둔다.
-export default function ItemRow({ item, creator, editor, planId, dayDate, planTitle, highlighted, onEdit, onDelete, onCopy }) {
+export default function ItemRow({ item, creator, editor, planId, dayDate, planTitle, highlighted, onEdit, onDelete, onCopy, onTogglePin }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const t = TYPES[item.type] || TYPES.기타;
   // 마지막으로 고친 사람이 있으면 그 사람을, 없으면(한 번도 안 고쳐졌으면) 처음 추가한 사람을 보여준다.
@@ -46,13 +46,26 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
         {item.time && <div style={s.itemRowTime}>{item.time}</div>}
         <div style={s.itemRowName}>{item.name}</div>
         <div style={{ ...s.itemRowMeta, display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
-          {item.move && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }} title="다음 장소까지 이동수단">
-              다음 <MoveIcon move={item.move} size={13} color={C.muted} /> {item.move}
-            </span>
-          )}
-          {item.move && attribution ? "·" : ""}
-          {attribution ? <span style={{ color: themedColor(attribution.member.color), fontWeight: 700 }}>{attribution.member.name} {attribution.label}</span> : ""}
+          {[
+            item.pinned && (
+              <span key="pin" style={{ display: "inline-flex", alignItems: "center", gap: 3, color: C.orangeDeep, fontWeight: 700 }} title="동선 최적화 시 순서가 고정돼요">
+                <LockIcon size={11} color={C.orangeDeep} /> 고정
+              </span>
+            ),
+            item.move && (
+              <span key="move" style={{ display: "inline-flex", alignItems: "center", gap: 3 }} title="다음 장소까지 이동수단">
+                다음 <MoveIcon move={item.move} size={13} color={C.muted} /> {item.move}
+              </span>
+            ),
+            attribution && (
+              <span key="attr" style={{ color: themedColor(attribution.member.color), fontWeight: 700 }}>{attribution.member.name} {attribution.label}</span>
+            ),
+          ].filter(Boolean).map((part, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && "·"}
+              {part}
+            </React.Fragment>
+          ))}
         </div>
         {(item.flightNo || item.voucher || item.attachmentName) && (
           <div style={{ ...s.itemRowMeta, display: "flex", alignItems: "center", gap: 8, marginTop: 3, flexWrap: "wrap" }}>
@@ -84,6 +97,14 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
         {item.memo && <div style={s.itemRowMemo}>{item.memo}</div>}
       </div>
       <div style={s.itemRowActions}>
+        <button
+          style={{ ...s.itemRowActionBtn, display: "flex", alignItems: "center", justifyContent: "center",
+                   ...(item.pinned ? s.itemRowActionBtnOn : {}) }}
+          title={item.pinned ? "동선 고정 해제" : "동선 최적화에서 이 항목 순서 고정"}
+          onClick={onTogglePin}
+        >
+          <LockIcon size={13} color={item.pinned ? C.orangeDeep : C.textMuted} />
+        </button>
         <button style={s.itemRowActionBtn} onClick={onEdit}>✎</button>
         <button style={s.itemRowActionBtn} title="더보기" onClick={() => setShowMenu(true)}>⋯</button>
       </div>
