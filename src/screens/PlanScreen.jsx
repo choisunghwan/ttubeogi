@@ -376,7 +376,7 @@ export default function PlanScreen() {
                 </button>
               )}
               {preOptimizeOrder?.dayId === selectedDay.id && (
-                <button style={{ ...s.optimizeRouteBtn, marginBottom: 0, flex: "0 0 auto", padding: "11px 14px",
+                <button style={{ ...s.optimizeRouteBtn, width: "auto", marginBottom: 0, flex: "0 0 auto", padding: "11px 14px",
                                   background: "#fff", color: C.textMuted, border: `1.5px solid ${C.borderStrong}` }}
                         onClick={handleUndoOptimize}>
                   되돌리기
