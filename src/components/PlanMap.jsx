@@ -16,7 +16,35 @@ const RESET_CSS = `
   padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 700; white-space: nowrap;
 }
 .ttubeogi-marker-label::before { border-top-color: ${C.ink}; }
+.ttubeogi-duration-label {
+  background: #fff; color: ${C.ink}; border: 1.5px solid ${C.orange};
+  padding: 2px 8px; border-radius: 20px; font-size: 10.5px; font-weight: 800; white-space: nowrap;
+  box-shadow: 0 2px 5px rgba(0,0,0,.2);
+}
 `;
+
+// "5분" / "1시간 20분" 형태로 — 초 단위 소요시간을 사람이 읽기 편하게.
+function formatDuration(sec) {
+  const min = Math.round(sec / 60);
+  if (min < 1) return "1분 미만";
+  if (min < 60) return `${min}분`;
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return m === 0 ? `${h}시간` : `${h}시간 ${m}분`;
+}
+
+// 두 좌표 사이 직선거리(m) — 도로 API가 실패해서 직선으로 대체한 구간의 소요시간을
+// "이동수단별 대략적인 평균 속도"로 추정할 때 씀(정확한 값이 아니라 대략적인 참고용).
+function haversineMeters(a, b) {
+  const R = 6371000;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat), lat2 = toRad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const FALLBACK_SPEED_KMH = { 도보: 4.5, 지하철: 30, 트램: 20, 버스: 20, 택시: 25, 자차: 30, 기타: 15 };
 
 function walkerIconHtml({ step, facing, walking, size = 40 }) {
   const bob = walking ? (step % 2 === 0 ? -1.5 : 0.5) : 0;
@@ -148,23 +176,44 @@ function interpolateStraight(a, b, seg, stepsPerSeg = 48) {
 // move는 "이 항목에서 다음 항목으로 이동하는 수단"으로 취급한다(moves[i] = points[i]→points[i+1] 구간) —
 // 도착지가 아니라 출발지 항목에 걸어야 적용되는 게 더 직관적이라는 피드백으로 바꿈
 // (예: "김포공항"에 이동수단=항공을 걸면 거기서 다음 장소로 가는 구간이 비행기가 됨).
+// 경로(path)뿐 아니라 구간별 소요시간도 같이 계산해서 돌려준다 — 실제 도로 API가 준 duration을
+// 최우선으로 쓰고, API가 실패해서 직선으로 대체한 구간은 이동수단 평균 속도로 대략 추정한다.
+// 비행기 구간은 거리로 소요시간을 추정하는 게 의미가 없어서(실제 항공편 스케줄과 무관) 아예
+// 표시 안 함 — 없는 데이터를 지어내는 대신 생략하는 쪽을 택함.
 async function buildRoadPath(points, moves) {
-  const segments = await Promise.all(
+  const segResults = await Promise.all(
     points.slice(0, -1).map(async (a, i) => {
       const b = points[i + 1];
-      if (moves[i] === "항공") return interpolateStraight(a, b, i);
-      const profile = moves[i] === "도보" ? "foot" : "driving";
-      const roadPoints = await fetchRoute(a, b, profile).catch(() => null);
-      if (roadPoints?.length > 1) {
-        return roadPoints.map(([lat, lng]) => ({ lat, lng, seg: i }));
+      const move = moves[i];
+      if (move === "항공") return { path: interpolateStraight(a, b, i), durationSec: null };
+
+      const profile = move === "도보" ? "foot" : "driving";
+      const routeData = await fetchRoute(a, b, profile).catch(() => null);
+      if (routeData?.points?.length > 1) {
+        return {
+          path: routeData.points.map(([lat, lng]) => ({ lat, lng, seg: i })),
+          durationSec: routeData.durationSec ?? null,
+        };
       }
-      return interpolateStraight(a, b, i);
+      const distanceM = haversineMeters(a, b);
+      const speedKmh = FALLBACK_SPEED_KMH[move] || FALLBACK_SPEED_KMH.기타;
+      return { path: interpolateStraight(a, b, i), durationSec: (distanceM / 1000 / speedKmh) * 3600 };
     })
   );
-  const path = segments.flat();
+
+  const path = segResults.flatMap((r) => r.path);
   const last = points[points.length - 1];
   path.push({ lat: last.lat, lng: last.lng, seg: points.length - 2 });
-  return path;
+
+  // 라벨을 놓을 위치 — 두 지점의 산술 중점이 아니라 실제 경로(도로/직선) 위의 중간 지점을 써서
+  // 굽은 길에서도 라벨이 경로 위에 자연스럽게 얹히게 한다.
+  const segmentDurations = segResults.map((r, i) => ({
+    seg: i,
+    durationSec: r.durationSec,
+    mid: r.path[Math.floor(r.path.length / 2)],
+  }));
+
+  return { path, segmentDurations };
 }
 
 export default function PlanMap({ items, onGoToList, onSelectItem }) {
@@ -263,10 +312,20 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
 
     if (geocoded.length > 1) {
       setRoutesLoading(true);
-      buildRoadPath(geocoded, geocoded.map((it) => it.move)).then((path) => {
+      buildRoadPath(geocoded, geocoded.map((it) => it.move)).then(({ path, segmentDurations }) => {
         if (cancelled) return;
         fullPathRef.current = path;
         L.polyline(path.map((p) => [p.lat, p.lng]), { color: C.orange, weight: 3, opacity: 0.7 }).addTo(layerGroupRef.current);
+        segmentDurations.forEach((sd) => {
+          if (sd.durationSec == null || !sd.mid) return;
+          L.marker([sd.mid.lat, sd.mid.lng], {
+            icon: L.divIcon({
+              html: `<div class="ttubeogi-duration-label">${formatDuration(sd.durationSec)}</div>`,
+              className: "ttubeogi-div-icon", iconSize: [60, 22], iconAnchor: [30, 11],
+            }),
+            interactive: false,
+          }).addTo(layerGroupRef.current);
+        });
         setRoutesLoading(false);
       });
     }

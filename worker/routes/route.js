@@ -21,11 +21,18 @@ app.get("/", async (c) => {
   if (!res.ok) return c.json({ error: "경로를 찾을 수 없습니다" }, 404);
 
   const data = await res.json();
-  const coords = data.routes?.[0]?.geometry?.coordinates;
+  const route = data.routes?.[0];
+  const coords = route?.geometry?.coordinates;
   if (!coords?.length) return c.json({ error: "경로를 찾을 수 없습니다" }, 404);
 
   // GeoJSON은 [lng, lat] 순서 — Leaflet은 [lat, lng]라서 뒤집어서 내려준다.
-  return c.json({ points: coords.map(([lng, lat]) => [lat, lng]) });
+  // duration(초)·distance(m)는 OSRM이 그 프로필(도보/차량) 기준으로 계산해주는 실제 값 — 지도에
+  // "소요시간"을 보여줄 때 씀.
+  return c.json({
+    points: coords.map(([lng, lat]) => [lat, lng]),
+    durationSec: route.duration ?? null,
+    distanceM: route.distance ?? null,
+  });
 });
 
 export default app;

@@ -121,7 +121,7 @@ export async function geocodeQuery(q) {
   return data.results || [];
 }
 
-// 두 좌표 사이의 실제 도로 경로. 못 찾으면 null(호출부에서 직선으로 대체).
+// 두 좌표 사이의 실제 도로 경로 + 소요시간/거리. 못 찾으면 null(호출부에서 직선으로 대체).
 export async function fetchRoute(from, to, profile = "foot") {
   const params = new URLSearchParams({
     fromLat: from.lat, fromLng: from.lng, toLat: to.lat, toLng: to.lng, profile,
@@ -129,5 +129,5 @@ export async function fetchRoute(from, to, profile = "foot") {
   const res = await fetch(`/api/route?${params}`);
   if (!res.ok) return null;
   const data = await res.json();
-  return data.points; // [[lat,lng], ...]
+  return data; // { points: [[lat,lng], ...], durationSec, distanceM }
 }
