@@ -55,9 +55,14 @@ async function translateText(text, targetLang, sourceLang = "auto") {
     return null;
   }
 }
-// 번역 API가 키 없는 비공식 엔드포인트라 가끔 실패한다 — 한 번 더 시도해서 성공률을 높인다.
+// 번역 API가 키 없는 비공식 엔드포인트라 가끔 실패한다(특히 한 요청 안에서 여러 조각을 한꺼번에
+// 병렬로 부르면 순간적으로 레이트리밋에 걸리는 걸로 보임) — 최대 3번까지 시도해서 성공률을 높인다.
 async function translateToKoreanRetry(text) {
-  return (await translateText(text, "ko")) || (await translateText(text, "ko"));
+  for (let i = 0; i < 3; i++) {
+    const result = await translateText(text, "ko");
+    if (result) return result;
+  }
+  return null;
 }
 
 // 해외 지명은 Nominatim이 한자/현지어 표기로만 줄 때가 많아서(예: "上海迪士尼樂園") 사용자가
