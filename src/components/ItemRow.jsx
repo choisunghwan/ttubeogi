@@ -95,7 +95,7 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
               <CalendarIcon size={16} color={C.ink} /> 캘린더에 담기
             </button>
             <button style={s.actionSheetBtn} onClick={() => { setShowMenu(false); onCopy(); }}>
-              <CopyIcon size={15} color={C.ink} /> 다른 날짜에 복사
+              <CopyIcon size={15} color={C.ink} /> 복사
             </button>
             <button style={{ ...s.actionSheetBtn, color: "#c0392b" }} onClick={() => { setShowMenu(false); onDelete(); }}>
               🗑 삭제
