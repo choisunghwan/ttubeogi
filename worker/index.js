@@ -4,6 +4,7 @@ import geocodeRouter from "./routes/geocode.js";
 import routeRouter from "./routes/route.js";
 import authRouter from "./routes/auth.js";
 import adminRouter from "./routes/admin.js";
+import communityRouter from "./routes/community.js";
 
 // Durable Object 클래스는 wrangler.jsonc의 durable_objects.bindings가 찾을 수 있도록
 // 이 파일(main entry)에서 반드시 export 해야 한다.
@@ -20,6 +21,7 @@ app.route("/api/geocode", geocodeRouter);
 app.route("/api/route", routeRouter);
 app.route("/api/auth", authRouter);
 app.route("/api/admin", adminRouter);
+app.route("/api/community", communityRouter);
 
 // WebSocket 업그레이드는 그 planId에 해당하는 PlanRoom Durable Object로 그대로 넘긴다.
 // (Durable Object 하나 = 그 Plan의 실시간 방 하나. idFromName으로 planId를 방 id로 삼는다.)

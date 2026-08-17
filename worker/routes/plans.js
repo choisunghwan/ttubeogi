@@ -4,7 +4,8 @@ import { getSessionUser } from "../lib/session.js";
 import { notifyRoom } from "../lib/notify.js";
 
 // 멤버 아바타 색상 팔레트. src/theme.js의 C.orange/member2/member3와 값 맞춤 + 추가 색상.
-const MEMBER_COLORS = ["#c97a42", "#5b8c7b", "#7a6cc4", "#d9534f", "#4a6fa5", "#c0568f"];
+// export — worker/lib/clonePlan.js(커뮤니티 담기)에서도 새 멤버를 만들 때 재사용.
+export const MEMBER_COLORS = ["#c97a42", "#5b8c7b", "#7a6cc4", "#d9534f", "#4a6fa5", "#c0568f"];
 const KINDS = new Set(["여행", "데이트", "약속"]);
 
 function today() {
@@ -183,6 +184,9 @@ app.get("/:id", async (c) => {
     status: computeStatus(plan.end_date),
     members: membersRes.results,
     days: daysRes.results.map((d) => ({ ...d, items: itemsByDay.get(d.id) || [] })),
+    isPublic: !!plan.is_public,
+    publishedAt: plan.published_at,
+    likeCount: plan.like_count,
   });
 });
 
@@ -204,6 +208,19 @@ app.patch("/:id", async (c) => {
     if (key in body) {
       sets.push(`${column} = ?`);
       values.push(key === "title" ? body[key].trim() : body[key]);
+    }
+  }
+
+  // 커뮤니티 공개 토글 — 켤 때만 로그인이 필요하다(좋아요 수/게시자 표시가 계정 단위라서).
+  // 끌 땐(비공개 전환) 다른 필드처럼 링크를 아는 사람 누구나 할 수 있게 둔다.
+  if ("isPublic" in body) {
+    if (body.isPublic) {
+      const sessionUser = await getSessionUser(c);
+      if (!sessionUser) return c.json({ error: "로그인 후 게시할 수 있어요" }, 401);
+      sets.push("is_public = 1", "published_by = ?", "published_at = COALESCE(published_at, datetime('now'))");
+      values.push(sessionUser.id);
+    } else {
+      sets.push("is_public = 0");
     }
   }
   if (sets.length === 0) return c.json({ error: "수정할 필드가 없습니다" }, 400);
@@ -263,6 +280,7 @@ app.patch("/:id", async (c) => {
     id: updated.id, kind: updated.kind, title: updated.title,
     startDate: updated.start_date, endDate: updated.end_date, region: updated.region,
     status: computeStatus(updated.end_date),
+    isPublic: !!updated.is_public, publishedAt: updated.published_at, likeCount: updated.like_count,
   });
 });
 

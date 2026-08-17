@@ -5,13 +5,14 @@ import { updatePlan, deletePlan } from "../lib/api";
 
 const KINDS = ["여행", "데이트", "약속"];
 
-// 일정 자체(제목/종류/기간/지역) 수정 + 삭제. 항목 CRUD와 별개로, Plan 레코드 자체를 다룬다.
-export default function EditPlanModal({ planId, plan, onClose, onSaved, onDeleted }) {
+// 일정 자체(제목/종류/기간/지역/커뮤니티 공개 여부) 수정 + 삭제. 항목 CRUD와 별개로, Plan 레코드 자체를 다룬다.
+export default function EditPlanModal({ planId, plan, me, onClose, onSaved, onDeleted }) {
   const [kind, setKind] = useState(plan.kind);
   const [title, setTitle] = useState(plan.title);
   const [startDate, setStartDate] = useState(plan.startDate);
   const [endDate, setEndDate] = useState(plan.endDate);
   const [region, setRegion] = useState(plan.region || "");
+  const [isPublic, setIsPublic] = useState(plan.isPublic || false);
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -28,6 +29,10 @@ export default function EditPlanModal({ planId, plan, onClose, onSaved, onDelete
       endDate: kind === "여행" ? (endDate || startDate) : startDate,
       region: region.trim() || null,
     };
+    // 토글을 안 건드렸으면 아예 안 보낸다 — 공개 상태 그대로 두는 경우까지 매번 로그인을
+    // 요구하면(공개 켜기는 로그인 필요) 로그아웃 상태에서 다른 필드(제목 등)만 고치려는
+    // 사람도 저장이 막혀버리는 문제가 생김.
+    if (isPublic !== (plan.isPublic || false)) patch.isPublic = isPublic;
     try {
       await updatePlan(planId, patch);
       onSaved();
@@ -101,6 +106,22 @@ export default function EditPlanModal({ planId, plan, onClose, onSaved, onDelete
 
           <div style={s.formLabel}>지역 (선택)</div>
           <input style={s.formInput} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="예: 상하이, 부산" />
+
+          <div style={s.formLabel}>🌍 커뮤니티 공유</div>
+          <div style={s.pickerGrid}>
+            <button type="button" disabled={!me}
+                    style={{ ...s.pickerBtn, flex: 1, ...(isPublic ? s.pickerBtnOn : {}),
+                             ...(!me ? { opacity: 0.5, cursor: "not-allowed" } : {}) }}
+                    onClick={() => me && setIsPublic(true)}>
+              공개
+            </button>
+            <button type="button" style={{ ...s.pickerBtn, flex: 1, ...(!isPublic ? s.pickerBtnOn : {}) }}
+                    onClick={() => setIsPublic(false)}>
+              비공개
+            </button>
+          </div>
+          {!me && <div style={s.formHint}>로그인 후 커뮤니티에 공개할 수 있어요.</div>}
+          {plan.isPublic && <div style={s.formHint}>게시됨 · 좋아요 {plan.likeCount || 0}개</div>}
 
           {error && <div style={s.formError}>{error}</div>}
 

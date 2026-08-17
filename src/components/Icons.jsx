@@ -108,6 +108,15 @@ export function LockIcon({ size = 13, color = "currentColor" }) {
   );
 }
 
+export function HeartIcon({ size = 15, color = "currentColor", filled = false }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <path d="M12 20.5s-7.5-4.6-10-9.3C.4 7.8 2 4.5 5.4 4c2-.3 3.9.6 5 2.3l1.6 2.3 1.6-2.3c1.1-1.7 3-2.6 5-2.3 3.4.5 5 3.8 3.4 7.2-2.5 4.7-10 9.3-10 9.3z"
+            stroke={color} strokeWidth="1.7" strokeLinejoin="round" fill={filled ? color : "none"} />
+    </svg>
+  );
+}
+
 export function RouteIcon({ size = 15, color = "currentColor" }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">

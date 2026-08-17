@@ -100,6 +100,9 @@ export default function PlanScreen() {
   const [showHelp, setShowHelp] = useState(false);
   const [highlightItemId, setHighlightItemId] = useState(null);
   const [preOptimizeOrder, setPreOptimizeOrder] = useState(null); // { dayId, itemIds } | null — 동선 최적화 직전 순서(되돌리기용)
+  const [me, setMe] = useState(undefined); // undefined = 확인 중, null = 비로그인 — 커뮤니티 공개 토글에 필요
+
+  useEffect(() => { getMe().then(setMe); }, []);
 
   // 지도에서 마커를 탭했을 때 "이 일정으로 가기" — 리스트 탭으로 바꾸고 해당 행으로 스크롤 + 잠깐 강조.
   function goToItem(itemId) {
@@ -444,6 +447,7 @@ export default function PlanScreen() {
         <EditPlanModal
           planId={planId}
           plan={plan}
+          me={me}
           onClose={() => setEditingPlan(false)}
           onSaved={() => { setEditingPlan(false); reload(); }}
           onDeleted={() => navigate("/")}

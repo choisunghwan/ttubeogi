@@ -121,6 +121,26 @@ export async function geocodeQuery(q) {
   return data.results || [];
 }
 
+// 커뮤니티 — 공개된 일정 피드/좋아요/담기.
+export function listCommunityPlans({ sort = "popular", limit = 20, offset = 0 } = {}) {
+  return request(`/api/community?sort=${sort}&limit=${limit}&offset=${offset}`);
+}
+
+export function likeCommunityPlan(id) {
+  return request(`/api/community/${id}/like`, { method: "POST" });
+}
+
+export function unlikeCommunityPlan(id) {
+  return request(`/api/community/${id}/like`, { method: "DELETE" });
+}
+
+export function importCommunityPlan(id, creatorName) {
+  return request(`/api/community/${id}/import`, {
+    method: "POST",
+    body: JSON.stringify({ creatorName }),
+  });
+}
+
 // 두 좌표 사이의 실제 도로 경로 + 소요시간/거리. 못 찾으면 null(호출부에서 직선으로 대체).
 export async function fetchRoute(from, to, profile = "foot") {
   const params = new URLSearchParams({
