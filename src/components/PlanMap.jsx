@@ -135,22 +135,23 @@ function planeIconHtml({ step, facing, size = 40 }) {
   </svg>`;
 }
 
-// 이동수단별 속도(프레임당 전진하는 경로점 개수)와 아이콘. 도보 기준(3)에서 빠른 교통수단일수록
+// 이동수단별 속도(초당 전진하는 경로점 개수)와 아이콘. 도보 기준에서 빠른 교통수단일수록
 // 배수로 빠르게 — "비행기인데 걷는 속도로 가면 이상하다"는 피드백으로 추가.
-// 자차/항공 모두 "너무 빨라서 캐릭터가 안 보인다"는 피드백으로 여러 차례 더 낮춤 — 보는
-// 재미가 있으려면 최소 프레임 수가 확보돼야 한다는 게 핵심.
+// 예전엔 "rAF 프레임당 몇 점 전진"으로 셌는데, 이러면 기기 화면 주사율(60Hz vs 90/120Hz)에
+// 따라 실제 체감 속도가 최대 2배까지 달라지고, 전체적으로도 "너무 빠르고 뚝뚝 끊긴다"는
+// 피드백을 받아서 시간(초) 기준으로 바꾸고 전반적으로 더 느리고 부드럽게 조정함 — 아래 animate()에서
+// 실제 경과 시간(delta time)만큼만 전진시켜서 어떤 기기에서도 체감 속도가 똑같게 만든다.
 const MOVE_STYLE = {
-  도보: { stepPerFrame: 3, icon: walkerIconHtml, drawShadow: true },
-  지하철: { stepPerFrame: 7, icon: trainIconHtml },
-  트램: { stepPerFrame: 6, icon: trainIconHtml },
-  버스: { stepPerFrame: 6, icon: busIconHtml },
-  택시: { stepPerFrame: 5, icon: carIconHtml },
-  자차: { stepPerFrame: 5, icon: carIconHtml },
-  기차: { stepPerFrame: 9, icon: trainIconHtml },
-  // 항공은 직선 고정 48포인트 경로(OSRM 안 씀) — 1은 한 프레임에 점 하나씩만 전진하는
-  // 최대 저속(이 경로 방식에서 가능한 가장 느린 속도)으로, 약 49프레임(~800ms) 동안 보임.
-  항공: { stepPerFrame: 1, icon: planeIconHtml },
-  기타: { stepPerFrame: 3, icon: walkerIconHtml },
+  도보: { pointsPerSec: 90, icon: walkerIconHtml, drawShadow: true },
+  지하철: { pointsPerSec: 200, icon: trainIconHtml },
+  트램: { pointsPerSec: 170, icon: trainIconHtml },
+  버스: { pointsPerSec: 170, icon: busIconHtml },
+  택시: { pointsPerSec: 150, icon: carIconHtml },
+  자차: { pointsPerSec: 150, icon: carIconHtml },
+  기차: { pointsPerSec: 260, icon: trainIconHtml },
+  // 항공은 직선 고정 48포인트 경로(OSRM 안 씀) — 전체를 가로지르는 데 대략 1.5초 정도 걸리는 속도로.
+  항공: { pointsPerSec: 30, icon: planeIconHtml },
+  기타: { pointsPerSec: 90, icon: walkerIconHtml },
 };
 function moveStyleFor(move) {
   return MOVE_STYLE[move] || MOVE_STYLE.기타;
@@ -358,10 +359,13 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
     setWalking(true);
     let i = 0;
     let prev = { lat: geocoded[curNow].lat, lng: geocoded[curNow].lng };
-    // 프레임당 경로점 하나씩만 전진 + requestAnimationFrame을 setTimeout으로 한번 더 감싸던 이전 방식은
-    // 사실상 프레임을 두 번씩 걸러 뛰는 셈이라 체감 속도가 느렸다. rAF 하나로만 돌리고, 이동수단별로
-    // 프레임당 전진하는 경로점 개수(속도)와 아이콘을 다르게 함(비행기는 빠르고 비행기 모양 등).
-    const animate = () => {
+    let lastTs = null;
+    let stepAcc = 0; // 다리/바퀴 프레임 전환용 누적 시간(ms)
+    const STEP_INTERVAL_MS = 110; // 이동수단·기기 주사율과 무관하게 일정한 속도로 걷는 모션이 반복되게.
+    // 경로점을 rAF 프레임당 고정 개수만큼 전진시키던 이전 방식은 기기 화면 주사율에 따라 체감 속도가
+    // 들쭉날쭉하고 전반적으로 너무 빨랐다. 실제 경과 시간(delta time) 기준으로 초당 이동수단별
+    // 속도(pointsPerSec)만큼만 전진시켜서, 어떤 기기에서도 속도가 똑같고 더 느리고 부드럽게 보이게 함.
+    const animate = (ts) => {
       if (i >= seg.length) {
         walkerMarkerRef.current.setLatLng([geocoded[clamped].lat, geocoded[clamped].lng]);
         walkerMarkerRef.current.setIcon(L.divIcon({
@@ -372,21 +376,32 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
         setWalking(false);
         return;
       }
-      const p = seg[i];
+      if (lastTs == null) lastTs = ts;
+      // 탭을 잠깐 떠나 있다 돌아오면 delta가 크게 튀어서 캐릭터가 순간이동해버릴 수 있어 clamp.
+      const dt = Math.min((ts - lastTs) / 1000, 0.05);
+      lastTs = ts;
+
+      const p = seg[Math.min(Math.floor(i), seg.length - 1)];
       const move = geocoded[p.seg]?.move;
       const style = moveStyleFor(move);
       walkStateRef.current.facing = p.lng >= prev.lng ? 1 : -1;
-      walkStateRef.current.step = (walkStateRef.current.step + 1) % 4;
+
+      stepAcc += dt * 1000;
+      if (stepAcc >= STEP_INTERVAL_MS) {
+        walkStateRef.current.step = (walkStateRef.current.step + 1) % 4;
+        stepAcc = 0;
+      }
+
       walkerMarkerRef.current.setLatLng([p.lat, p.lng]);
       walkerMarkerRef.current.setIcon(L.divIcon({
         html: style.icon({ step: walkStateRef.current.step, facing: walkStateRef.current.facing, walking: true }),
         className: "ttubeogi-div-icon", iconSize: [40, 40], iconAnchor: [20, 34],
       }));
       prev = p;
-      i += style.stepPerFrame;
+      i += style.pointsPerSec * dt;
       rafRef.current = requestAnimationFrame(animate);
     };
-    animate();
+    rafRef.current = requestAnimationFrame(animate);
   }
 
   const navBlock = geocoded.length > 0 && (
