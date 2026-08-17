@@ -109,7 +109,7 @@ export default function CommunityScreen() {
         <div style={s.ticketNotchBottom} />
         <div style={s.ticketStub}>
           <KindIcon kind={p.kind} size={18} color={C.gold} />
-          <button style={s.communityLikeBtn} onClick={() => toggleLike(p)}>
+          <button style={s.communityLikeBtn} disabled={me === undefined} onClick={() => toggleLike(p)}>
             <HeartIcon size={18} color={p.likedByMe ? "#c0392b" : C.textMuted} filled={p.likedByMe} />
             <span style={s.communityLikeCount}>{p.likeCount}</span>
           </button>
