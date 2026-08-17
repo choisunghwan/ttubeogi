@@ -135,23 +135,23 @@ function planeIconHtml({ step, facing, size = 40 }) {
   </svg>`;
 }
 
-// 이동수단별 속도(초당 전진하는 경로점 개수)와 아이콘. 도보 기준에서 빠른 교통수단일수록
+// 이동수단별 속도(초당 이동하는 "화면 픽셀" 거리)와 아이콘. 도보 기준에서 빠른 교통수단일수록
 // 배수로 빠르게 — "비행기인데 걷는 속도로 가면 이상하다"는 피드백으로 추가.
-// 예전엔 "rAF 프레임당 몇 점 전진"으로 셌는데, 이러면 기기 화면 주사율(60Hz vs 90/120Hz)에
-// 따라 실제 체감 속도가 최대 2배까지 달라지고, 전체적으로도 "너무 빠르고 뚝뚝 끊긴다"는
-// 피드백을 받아서 시간(초) 기준으로 바꾸고 전반적으로 더 느리고 부드럽게 조정함 — 아래 animate()에서
-// 실제 경과 시간(delta time)만큼만 전진시켜서 어떤 기기에서도 체감 속도가 똑같게 만든다.
+// 위경도 좌표 개수(또는 지리적 거리) 기준으로 속도를 정하면, 지도를 확대할수록 같은 지리적
+// 거리라도 화면에서는 훨씬 더 많은 픽셀을 이동한 것처럼 보여서 "확대하면 캐릭터가 휙 지나간다"는
+// 문제가 있었다 — 그래서 "화면에 실제로 보이는 픽셀 속도"를 기준으로 삼는다(아래 animate()에서
+// 매 프레임 현재 줌 기준으로 다음 경로점까지의 실제 화면 픽셀 거리를 재서 그만큼만 전진시킴).
+// 이러면 확대·축소와 무관하게 캐릭터가 화면에서 항상 똑같은 속도로 걷는 것처럼 보인다.
 const MOVE_STYLE = {
-  도보: { pointsPerSec: 90, icon: walkerIconHtml, drawShadow: true },
-  지하철: { pointsPerSec: 200, icon: trainIconHtml },
-  트램: { pointsPerSec: 170, icon: trainIconHtml },
-  버스: { pointsPerSec: 170, icon: busIconHtml },
-  택시: { pointsPerSec: 150, icon: carIconHtml },
-  자차: { pointsPerSec: 150, icon: carIconHtml },
-  기차: { pointsPerSec: 260, icon: trainIconHtml },
-  // 항공은 직선 고정 48포인트 경로(OSRM 안 씀) — 전체를 가로지르는 데 대략 1.5초 정도 걸리는 속도로.
-  항공: { pointsPerSec: 30, icon: planeIconHtml },
-  기타: { pointsPerSec: 90, icon: walkerIconHtml },
+  도보: { pxPerSec: 70, icon: walkerIconHtml, drawShadow: true },
+  지하철: { pxPerSec: 160, icon: trainIconHtml },
+  트램: { pxPerSec: 140, icon: trainIconHtml },
+  버스: { pxPerSec: 140, icon: busIconHtml },
+  택시: { pxPerSec: 120, icon: carIconHtml },
+  자차: { pxPerSec: 120, icon: carIconHtml },
+  기차: { pxPerSec: 210, icon: trainIconHtml },
+  항공: { pxPerSec: 90, icon: planeIconHtml },
+  기타: { pxPerSec: 70, icon: walkerIconHtml },
 };
 function moveStyleFor(move) {
   return MOVE_STYLE[move] || MOVE_STYLE.기타;
@@ -356,17 +356,19 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
     if (clamped < curNow) seg = seg.reverse();
 
     if (seg.length === 0) { setCurrent(clamped); return; }
+    if (seg.length === 1) { setCurrent(clamped); return; } // 보간할 점 쌍이 없음 — 즉시 도착 처리
     setWalking(true);
-    let i = 0;
-    let prev = { lat: geocoded[curNow].lat, lng: geocoded[curNow].lng };
+    let i = 0; // seg 안에서의 위치 — 정수부는 지나온 점, 소수부는 다음 점까지의 보간 비율
     let lastTs = null;
     let stepAcc = 0; // 다리/바퀴 프레임 전환용 누적 시간(ms)
     const STEP_INTERVAL_MS = 110; // 이동수단·기기 주사율과 무관하게 일정한 속도로 걷는 모션이 반복되게.
     // 경로점을 rAF 프레임당 고정 개수만큼 전진시키던 이전 방식은 기기 화면 주사율에 따라 체감 속도가
-    // 들쭉날쭉하고 전반적으로 너무 빨랐다. 실제 경과 시간(delta time) 기준으로 초당 이동수단별
-    // 속도(pointsPerSec)만큼만 전진시켜서, 어떤 기기에서도 속도가 똑같고 더 느리고 부드럽게 보이게 함.
+    // 들쭉날쭉하고, 지도를 확대할수록 같은 지리적 거리도 화면에서 훨씬 빨리 지나가 보였다("휙 지나간다").
+    // 실제 경과 시간(delta time) 기준으로 화면 픽셀 속도(pxPerSec)를 유지하도록 바꾸고, 정수 경로점에
+    // 스냅하는 대신 두 점 사이를 선형보간해서 렌더링 — 확대했을 때 점 사이 간격이 넓어져도 캐릭터가
+    // 뚝뚝 끊기지 않고 부드럽게 이어져 보인다.
     const animate = (ts) => {
-      if (i >= seg.length) {
+      if (i >= seg.length - 1) {
         walkerMarkerRef.current.setLatLng([geocoded[clamped].lat, geocoded[clamped].lng]);
         walkerMarkerRef.current.setIcon(L.divIcon({
           html: walkerIconHtml({ step: 0, facing: walkStateRef.current.facing, walking: false }),
@@ -381,10 +383,14 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
       const dt = Math.min((ts - lastTs) / 1000, 0.05);
       lastTs = ts;
 
-      const p = seg[Math.min(Math.floor(i), seg.length - 1)];
+      const idx = Math.min(Math.floor(i), seg.length - 2);
+      const frac = i - idx;
+      const a = seg[idx];
+      const b = seg[idx + 1];
+      const p = { lat: a.lat + (b.lat - a.lat) * frac, lng: a.lng + (b.lng - a.lng) * frac, seg: a.seg };
       const move = geocoded[p.seg]?.move;
       const style = moveStyleFor(move);
-      walkStateRef.current.facing = p.lng >= prev.lng ? 1 : -1;
+      walkStateRef.current.facing = b.lng >= a.lng ? 1 : -1;
 
       stepAcc += dt * 1000;
       if (stepAcc >= STEP_INTERVAL_MS) {
@@ -397,8 +403,14 @@ export default function PlanMap({ items, onGoToList, onSelectItem }) {
         html: style.icon({ step: walkStateRef.current.step, facing: walkStateRef.current.facing, walking: true }),
         className: "ttubeogi-div-icon", iconSize: [40, 40], iconAnchor: [20, 34],
       }));
-      prev = p;
-      i += style.pointsPerSec * dt;
+
+      // 이 두 경로점 사이가 지금 줌에서 화면 픽셀로 몇 px인지 재서, 그만큼의 픽셀 속도를 내려면
+      // i를 얼마나 전진시켜야 하는지 역산한다 — 확대해서 점 사이 픽셀 간격이 벌어지면 자동으로
+      // 한 프레임에 전진하는 양이 줄어들어(더 잘게 쪼개져) 화면상 속도와 부드러움이 함께 유지된다.
+      const aPx = mapRef.current.latLngToContainerPoint([a.lat, a.lng]);
+      const bPx = mapRef.current.latLngToContainerPoint([b.lat, b.lng]);
+      const pxPerUnit = Math.max(aPx.distanceTo(bPx), 0.5); // 0으로 나누기 방지용 최소값
+      i += (style.pxPerSec * dt) / pxPerUnit;
       rafRef.current = requestAnimationFrame(animate);
     };
     rafRef.current = requestAnimationFrame(animate);
