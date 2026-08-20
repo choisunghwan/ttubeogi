@@ -4,9 +4,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { s } from "../styles";
 import { TYPES, C, themedColor } from "../theme";
 import MoveIcon from "./MoveIcon";
-import { CalendarIcon, TicketIcon, PlaneBadgeIcon, PaperclipIcon, CopyIcon, LockIcon } from "./Icons";
+import { CalendarIcon, TicketIcon, PlaneBadgeIcon, PaperclipIcon, CopyIcon, LockIcon, KakaoDotIcon, NaverDotIcon, MapPinIcon } from "./Icons";
 import { buildItemICS, downloadICS } from "../lib/ics";
 import { attachmentUrl } from "../lib/api";
+import { kakaoMapUrl, naverMapUrl } from "../lib/mapLinks";
 
 // 드래그 핸들만 dnd-kit 리스너를 붙인다 — 행 전체를 드래그 대상으로 하면
 // ✎/🗑 탭이나 스크롤 제스처와 자꾸 충돌해서, 잡을 수 있는 손잡이를 따로 둔다.
@@ -23,6 +24,18 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
     e.stopPropagation();
     const ics = buildItemICS({ planTitle, item, dayDate });
     downloadICS(`${item.name}.ics`, ics);
+  }
+
+  function handleOpenKakaoMap() {
+    window.open(kakaoMapUrl(item), "_blank", "noopener,noreferrer");
+  }
+
+  function handleOpenNaverMap() {
+    window.open(naverMapUrl(item), "_blank", "noopener,noreferrer");
+  }
+
+  function handleOpenSavedMapLink() {
+    window.open(item.mapLink, "_blank", "noopener,noreferrer");
   }
 
   function handleOpenAttachment(e) {
@@ -115,6 +128,17 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
             <button style={s.actionSheetBtn} onClick={(e) => { setShowMenu(false); handleAddToCalendar(e); }}>
               <CalendarIcon size={16} color={C.ink} /> 캘린더에 담기
             </button>
+            <button style={s.actionSheetBtn} onClick={() => { setShowMenu(false); handleOpenKakaoMap(); }}>
+              <KakaoDotIcon size={16} /> 카카오맵으로 길찾기
+            </button>
+            <button style={s.actionSheetBtn} onClick={() => { setShowMenu(false); handleOpenNaverMap(); }}>
+              <NaverDotIcon size={16} /> 네이버 지도로 길찾기
+            </button>
+            {item.mapLink && (
+              <button style={s.actionSheetBtn} onClick={() => { setShowMenu(false); handleOpenSavedMapLink(); }}>
+                <MapPinIcon size={15} color={C.ink} /> 저장된 지도 링크 열기
+              </button>
+            )}
             <button style={s.actionSheetBtn} onClick={() => { setShowMenu(false); onCopy(); }}>
               <CopyIcon size={15} color={C.ink} /> 복사
             </button>

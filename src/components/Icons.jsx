@@ -171,3 +171,12 @@ export function KakaoDotIcon({ size = 14 }) {
     </svg>
   );
 }
+
+export function NaverDotIcon({ size = 14 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" fill="#03C75A" />
+      <path d="M8 7h2.6l4.1 5.8V7H17v10h-2.6l-4.1-5.8V17H8z" fill="#fff" />
+    </svg>
+  );
+}
