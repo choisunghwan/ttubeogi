@@ -141,6 +141,16 @@ export function importCommunityPlan(id, creatorName) {
   });
 }
 
+// 네이버 지도/카카오맵에서 복사해온 장소 공유 링크로 좌표를 채운다.
+export async function geocodeFromLink(url) {
+  const res = await fetch(`/api/geocode/link?url=${encodeURIComponent(url)}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || "링크에서 위치를 찾지 못했어요");
+  }
+  return res.json();
+}
+
 // 두 좌표 사이의 실제 도로 경로 + 소요시간/거리. 못 찾으면 null(호출부에서 직선으로 대체).
 export async function fetchRoute(from, to, profile = "foot") {
   const params = new URLSearchParams({

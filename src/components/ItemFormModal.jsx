@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { s } from "../styles";
 import { C, TYPES } from "../theme";
-import { addItem, updateItem, geocodeQuery, uploadAttachment, deleteAttachment, attachmentUrl } from "../lib/api";
+import { addItem, updateItem, geocodeQuery, geocodeFromLink, uploadAttachment, deleteAttachment, attachmentUrl } from "../lib/api";
 import { PaperclipIcon } from "./Icons";
 
 const MAX_ATTACHMENT_MB = 8;
@@ -97,6 +97,9 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
   const [geoStatus, setGeoStatus] = useState(null); // null | "searching" | "notfound" | "picking"
   const [geoLabel, setGeoLabel] = useState(null);
   const [geoCandidates, setGeoCandidates] = useState([]); // 검색 결과 여러 개 — 사용자가 골라야 함
+  const [linkFilling, setLinkFilling] = useState(false);
+  const [linkFillError, setLinkFillError] = useState(null);
+  const isMapServiceLink = /naver\.(com|me)|kakao\.com|kko\.to/.test(mapLink);
 
   const currentTerm = (query.trim() || name.trim());
   const coordsValid = Boolean(coords) && currentTerm !== "" && searchedFor === currentTerm;
@@ -125,6 +128,28 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
     // "번역 (원문)" 형태라 원문 괄호는 빼고 번역된 이름만 넣는다.
     if (!name.trim()) {
       setName(result.label.replace(/\s*\([^)]*\)\s*$/, ""));
+    }
+  }
+
+  // 네이버 지도/카카오맵에서 복사해온 공유 링크로 좌표를 바로 채운다 — 검색으로 찾은 것과
+  // 똑같이 취급하기 위해 query/searchedFor도 그 장소 이름으로 맞춰준다(coordsValid 조건 충족용).
+  async function handleFillFromLink() {
+    if (!mapLink.trim() || linkFilling) return;
+    setLinkFilling(true);
+    setLinkFillError(null);
+    try {
+      const result = await geocodeFromLink(mapLink.trim());
+      setCoords({ lat: result.lat, lng: result.lng });
+      setQuery(result.label);
+      setSearchedFor(result.label);
+      setGeoLabel(result.label);
+      setGeoStatus(null);
+      setGeoCandidates([]);
+      if (!name.trim()) setName(result.label);
+    } catch (err) {
+      setLinkFillError(err.message);
+    } finally {
+      setLinkFilling(false);
     }
   }
 
@@ -255,7 +280,22 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
           )}
 
           <div style={s.formLabel}>지도 링크 붙여넣기 (선택)</div>
-          <input style={s.formInput} value={mapLink} onChange={(e) => setMapLink(e.target.value)} placeholder="구글맵/카카오맵 링크" />
+          <div style={s.formRow}>
+            <input
+              style={{ ...s.formInput, flex: 1, minWidth: 0 }} value={mapLink}
+              onChange={(e) => { setMapLink(e.target.value); setLinkFillError(null); }}
+              placeholder="네이버지도/카카오맵/구글맵 링크"
+            />
+            {isMapServiceLink && (
+              <button type="button" style={{ ...s.shareCopyBtn, flexShrink: 0 }} disabled={linkFilling} onClick={handleFillFromLink}>
+                {linkFilling ? "가져오는 중…" : "📍 좌표 채우기"}
+              </button>
+            )}
+          </div>
+          {isMapServiceLink && !linkFillError && (
+            <div style={s.formHint}>네이버 지도·카카오맵 링크면 "좌표 채우기"로 이름·좌표를 자동으로 가져와요</div>
+          )}
+          {linkFillError && <div style={s.formHint}>{linkFillError}</div>}
 
           <div style={s.formLabel}>다음 장소까지 이동수단</div>
           <div style={s.pickerGrid}>

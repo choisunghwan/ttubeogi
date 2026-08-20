@@ -133,6 +133,111 @@ function dedupe(results) {
   });
 }
 
+// 네이버 지도/카카오맵 "공유 링크"에서 좌표를 뽑아낸다. 사용자가 붙여넣는 링크는 짧은 링크
+// (naver.me, kko.to)일 수도 있어서, 먼저 리다이렉트를 따라가서 실제 도착 URL을 얻은 다음
+// 그 안의 숫자 id로 항상 "서버가 렌더링하는" 상세 페이지(네이버는 m.place.naver.com, 카카오는
+// place.map.kakao.com)를 다시 요청한다 — 지도 앱 자체 도메인(map.naver.com/p/...)은 클라이언트
+// 에서 렌더링되는 SPA라 정적으로 긁을 수 없음.
+//
+// 좌표를 얻는 방식이 두 서비스가 다르다(둘 다 실제로 curl로 직접 확인한 결과):
+//   - 네이버: 지하철역 같은 특수 장소는 og:image 미리보기 지도에 "center=lng,lat"가 박혀 있지만,
+//     일반 음식점/카페 같은 보통 장소는 없다 — 대신 페이지 안에 하이드레이션용으로 심어둔
+//     `"coordinate":{"__typename":"Coordinate","x":"...","y":"..."}` JSON을 정규식으로 뽑는다.
+//   - 카카오: place.map.kakao.com 페이지는 좌표를 전혀 안 담고 있고(og:title/description만
+//     서버 렌더링됨, 실제 지도 데이터는 클라이언트 JS가 따로 불러옴) — 그래서 좌표 없이
+//     이름/주소만 뽑은 다음, 이미 이 파일에 있는 카카오 로컬 검색(searchKakaoMulti)에 그
+//     이름을 넣어 좌표를 얻는다. 카카오 자기 서비스 안의 정확한 이름으로 검색하는 거라
+//     엉뚱한 곳이 나올 걱정이 거의 없음.
+const LINK_USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15";
+
+async function resolveRedirect(url) {
+  const res = await fetch(url, { redirect: "follow", headers: { "User-Agent": LINK_USER_AGENT } });
+  return res.url;
+}
+
+async function fetchHtml(url) {
+  const res = await fetch(url, { headers: { "User-Agent": LINK_USER_AGENT } });
+  if (!res.ok) return null;
+  return res.text();
+}
+
+async function geocodeNaverLink(resolvedUrl) {
+  // 지하철역 같은 특수 장소는 m.place.naver.com이 아니라 완전히 다른 도메인(pts.map.naver.com
+  // 등)으로 리다이렉트되는데, 그 URL에도 우연히 숫자 세그먼트가 있어서 도메인을 먼저 확인
+  // 안 하면 그 숫자를 엉뚱하게 place id로 오인해서 완전히 무관한 장소 좌표를 돌려주게 된다
+  // (실제로 겪은 문제 — 지하철역 링크가 충남의 한 초등학교 좌표를 반환했었음). 정직하게
+  // "못 찾음"으로 실패시키는 게 틀린 좌표를 조용히 주는 것보다 낫다.
+  if (!/^https:\/\/(m\.place|map)\.naver\.com\//.test(resolvedUrl)) return null;
+  // "/place/{id}"로 요청해도 네이버가 업종별 경로(restaurant/cafe/accommodation/...)로 리다이렉트
+  // 시켜버려서 "place"라는 세그먼트 이름에 의존하면 안 됨 — "{id}/home" 패턴으로 잡고,
+  // map.naver.com/p/entry/place/{id} 형태(리다이렉트 안 되고 그대로 오는 경우)는 폴백으로.
+  const idMatch = resolvedUrl.match(/\/(\d+)\/home(?:[/?]|$)/) || resolvedUrl.match(/place\/(\d+)/);
+  if (!idMatch) return null;
+  const html = await fetchHtml(`https://m.place.naver.com/place/${idMatch[1]}/home`);
+  if (!html) return null;
+
+  // og:image에 박힌 "center=lng,lat"를 좌표로 쓰는 폴백을 예전에 시도했었는데, 지하철역처럼
+  // 특수한 페이지 구조에서는 그 값이 페이지 안의 "주변 추천 장소" 같은 엉뚱한 위치를 가리키는
+  // 경우가 실제로 있었다(직접 테스트로 확인) — 틀린 좌표를 조용히 반환하느니 못 찾았다고
+  // 정직하게 실패하는 게 낫다. 그래서 신뢰할 수 있는 이 패턴 하나만 쓴다.
+  const coordMatch = html.match(/"coordinate":\{"__typename":"Coordinate","x":"([\d.]+)","y":"([\d.]+)"/);
+  if (!coordMatch) return null;
+
+  const titleMatch = html.match(/property="og:title" content="([^"]*)"/);
+  const descMatch = html.match(/property="og:description" content="([^"]*)"/);
+  const roadAddrMatch = html.match(/"roadAddress":"([^"]*)"/);
+  // 제어문자 제거 + " : 네이버" 같은 사이트명 접미사 제거. 지하철역 페이지는 og:title이
+  // "네이버지도 - 지하철"이라는 고정 문구라 실제 이름은 description에 있음.
+  const clean = (str) => str?.replace(/[\x00-\x1F\x7F]/g, "").split(" : 네이버")[0].trim();
+  const rawTitle = clean(titleMatch?.[1]);
+  const label = (rawTitle && !rawTitle.startsWith("네이버지도")) ? rawTitle : (clean(descMatch?.[1]) || "네이버 지도 장소");
+  const address = roadAddrMatch?.[1] || label;
+  return { lat: Number(coordMatch[2]), lng: Number(coordMatch[1]), label, address, source: "naver-link" };
+}
+
+async function geocodeKakaoLink(resolvedUrl, kakaoApiKey) {
+  const idMatch = resolvedUrl.match(/place\.map\.kakao\.com\/(\d+)/);
+  if (!idMatch) return null;
+  const html = await fetchHtml(`https://place.map.kakao.com/${idMatch[1]}`);
+  if (!html) return null;
+
+  const titleMatch = html.match(/property="og:title" content="([^"]*)"/);
+  const name = titleMatch?.[1];
+  if (!name) return null;
+
+  const candidates = await searchKakaoMulti(name, kakaoApiKey, 1);
+  if (candidates.length === 0) return null;
+  return { ...candidates[0], label: name, source: "kakao-link" };
+}
+
+// GET /api/geocode/link?url=붙여넣은_지도_링크
+app.get("/link", async (c) => {
+  const rawUrl = c.req.query("url")?.trim();
+  if (!rawUrl) return c.json({ error: "url은 필수입니다" }, 400);
+
+  let resolvedUrl;
+  try {
+    resolvedUrl = await resolveRedirect(rawUrl);
+  } catch {
+    return c.json({ error: "링크를 열 수 없어요" }, 400);
+  }
+
+  try {
+    let result = null;
+    if (/naver\.com|naver\.me/.test(resolvedUrl)) {
+      result = await geocodeNaverLink(resolvedUrl);
+    } else if (/kakao\.com|kko\.to/.test(resolvedUrl)) {
+      result = await geocodeKakaoLink(resolvedUrl, c.env.KAKAO_REST_API_KEY);
+    } else {
+      return c.json({ error: "네이버 지도 또는 카카오맵 링크만 지원해요" }, 400);
+    }
+    if (!result) return c.json({ error: "이 링크에서는 위치를 찾지 못했어요 — 장소 상세 링크인지 확인해주세요" }, 404);
+    return c.json(result);
+  } catch {
+    return c.json({ error: "링크를 처리하는 중 문제가 생겼어요" }, 500);
+  }
+});
+
 // GET /api/geocode?q=검색어 — 카카오(국내, 최대 5개) + Nominatim(전세계)을 같이 검색해서 후보
 // 목록을 반환. 프론트에서 사용자가 직접 골라서 확정한다(자동으로 첫 결과 찍지 않음).
 // 주의: Nominatim은 그 검색어 문자열 자체로만 매칭하는 지오코더라 "도쿄 디즈니랜드"처럼 한글로
