@@ -26,6 +26,12 @@ export function formatDday(startDate) {
   return null; // 이미 시작된 일정은 뱃지 생략
 }
 
+// 지난 일정을 월별로 묶을 때 쓰는 그룹 라벨 — "2026년 3월"
+export function formatMonthLabel(dateStr) {
+  const [y, m] = dateStr.split("-");
+  return `${y}년 ${Number(m)}월`;
+}
+
 const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
 
 // 홈 카드용 "9월 12일 – 15일 · 3박 4일" / "8월 23일 (토) · 하루" 포맷

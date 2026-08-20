@@ -7,7 +7,7 @@ import KindIcon from "../components/KindIcon";
 import { PersonIcon, CalendarIcon, SuitcaseIcon, KakaoDotIcon } from "../components/Icons";
 import { listMyPlans } from "../lib/api";
 import { getKnownPlanIds } from "../lib/localPlans";
-import { formatWhen, formatDday } from "../utils";
+import { formatWhen, formatDday, formatMonthLabel } from "../utils";
 import { getMe, KAKAO_LOGIN_URL } from "../lib/auth";
 
 // 종류별 보딩패스 상단 라벨 — 실제 항공권/티켓 발권 용지에 찍히는 문구 느낌으로.
@@ -19,6 +19,7 @@ export default function HomeScreen() {
   const [plans, setPlans] = useState(null); // null = 로딩 중
   const [error, setError] = useState(null);
   const [me, setMe] = useState(undefined); // undefined = 확인 중, null = 비로그인
+  const [showAllPast, setShowAllPast] = useState(false); // 지난 일정이 쌓이면 최근 2개월만 먼저 보여줌
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +32,20 @@ export default function HomeScreen() {
 
   const upcoming = (plans || []).filter((p) => p.status === "upcoming")
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
-  const past = (plans || []).filter((p) => p.status === "past");
+  // 지난 일정은 최근에 다녀온 것부터(내림차순) — 정렬이 안 돼 있으면 쌓일수록 순서가 뒤죽박죽으로 보임.
+  const past = (plans || []).filter((p) => p.status === "past")
+    .sort((a, b) => b.startDate.localeCompare(a.startDate));
+
+  // 월별로 묶기 — past가 이미 날짜 내림차순이라 훑으면서 월이 바뀔 때마다 새 그룹을 만들면 됨.
+  const pastByMonth = [];
+  for (const p of past) {
+    const key = p.startDate.slice(0, 7);
+    const lastGroup = pastByMonth[pastByMonth.length - 1];
+    if (lastGroup?.key === key) lastGroup.items.push(p);
+    else pastByMonth.push({ key, label: formatMonthLabel(p.startDate), items: [p] });
+  }
+  const visiblePastGroups = showAllPast ? pastByMonth : pastByMonth.slice(0, 2);
+  const hiddenPastCount = pastByMonth.slice(2).reduce((n, g) => n + g.items.length, 0);
 
   // 보딩패스(항공권) 형태 — 본문(왼쪽) + 절취선(펀치 노치) + 스텁(오른쪽)의 실제 티켓 구조를 그대로 흉내.
   const PlanCard = ({ p, hot }) => {
@@ -129,7 +143,17 @@ export default function HomeScreen() {
           <div style={{ ...s.sectionLabel, marginTop: 22 }}>
             <SuitcaseIcon size={13} color="#6f6656" /> 지난 일정
           </div>
-          {past.map((p) => <PlanCard key={p.id} p={p} />)}
+          {visiblePastGroups.map((group) => (
+            <div key={group.key}>
+              <div style={s.pastMonthLabel}>{group.label}</div>
+              {group.items.map((p) => <PlanCard key={p.id} p={p} />)}
+            </div>
+          ))}
+          {!showAllPast && hiddenPastCount > 0 && (
+            <button style={s.pastShowMoreBtn} onClick={() => setShowAllPast(true)}>
+              이전 일정 더보기 ({hiddenPastCount}개)
+            </button>
+          )}
         </>
       )}
 
