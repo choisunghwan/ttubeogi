@@ -10,8 +10,10 @@ import PlanScreen from "./screens/PlanScreen";
 import MyPageScreen from "./screens/MyPageScreen";
 import AdminScreen from "./screens/AdminScreen";
 import { PlaneBadgeIcon, CalendarIcon, GlobeIcon } from "./components/Icons";
+import { COMMUNITY_ENABLED } from "./lib/featureFlags";
 
-// 하단 탭바는 홈/캘린더/커뮤니티 세 화면에서만 보인다 — 일정 만들기·일정 상세는 자체 상단 흐름을 쓴다.
+// 하단 탭바는 홈/캘린더(+ 커뮤니티가 켜져 있으면 커뮤니티까지) 화면에서만 보인다 —
+// 일정 만들기·일정 상세는 자체 상단 흐름을 쓴다.
 // (나의 지도는 마이페이지 안으로 옮겨서 여기 탭에는 더 이상 없음)
 function TabBar() {
   const location = useLocation();
@@ -25,16 +27,19 @@ function TabBar() {
       <button style={{ ...s.tabBtn, ...(tab === "calendar" ? s.tabOn : {}) }} onClick={() => navigate("/calendar")}>
         <span style={s.tabIcon}><CalendarIcon size={18} color={tab === "calendar" ? C.orangeDeep : C.textMuted} /></span> 캘린더
       </button>
-      <button style={{ ...s.tabBtn, ...(tab === "community" ? s.tabOn : {}) }} onClick={() => navigate("/community")}>
-        <span style={s.tabIcon}><GlobeIcon size={17} color={tab === "community" ? C.orangeDeep : C.textMuted} /></span> 커뮤니티
-      </button>
+      {COMMUNITY_ENABLED && (
+        <button style={{ ...s.tabBtn, ...(tab === "community" ? s.tabOn : {}) }} onClick={() => navigate("/community")}>
+          <span style={s.tabIcon}><GlobeIcon size={17} color={tab === "community" ? C.orangeDeep : C.textMuted} /></span> 커뮤니티
+        </button>
+      )}
     </div>
   );
 }
 
 export default function App() {
   const location = useLocation();
-  const showTabBar = location.pathname === "/" || location.pathname === "/calendar" || location.pathname === "/community";
+  const showTabBar = location.pathname === "/" || location.pathname === "/calendar"
+    || (COMMUNITY_ENABLED && location.pathname === "/community");
 
   return (
     <div className="app-shell" style={s.app}>
@@ -43,7 +48,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomeScreen />} />
           <Route path="/calendar" element={<CalendarScreen />} />
-          <Route path="/community" element={<CommunityScreen />} />
+          {COMMUNITY_ENABLED && <Route path="/community" element={<CommunityScreen />} />}
           <Route path="/new" element={<CreatePlanScreen />} />
           <Route path="/p/:planId" element={<PlanScreen />} />
           <Route path="/me" element={<MyPageScreen />} />
