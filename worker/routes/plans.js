@@ -164,6 +164,7 @@ app.get("/:id", async (c) => {
         memo: it.detail,
         flightNo: it.flight_no,
         voucher: it.voucher,
+        cost: it.cost,
         attachmentName: it.attachment_name,
         attachmentType: it.attachment_type,
         itemStatus: it.item_status,
@@ -330,7 +331,7 @@ app.post("/:id/members", async (c) => {
 app.post("/:id/items", async (c) => {
   const id = c.req.param("id");
   const body = await c.req.json().catch(() => ({}));
-  const { dayId, type, time, name, query, lat, lng, mapLink, move, flightNo, voucher, memo, createdBy } = body;
+  const { dayId, type, time, name, query, lat, lng, mapLink, move, flightNo, voucher, memo, cost, createdBy } = body;
 
   if (!name?.trim()) return c.json({ error: "name은 필수입니다" }, 400);
   if (!type) return c.json({ error: "type은 필수입니다" }, 400);
@@ -350,9 +351,9 @@ app.post("/:id/items", async (c) => {
   );
   stmts.push(
     c.env.DB.prepare(
-      `INSERT INTO items (id, day_id, type, time, name, query, lat, lng, map_link, move, flight_no, voucher, detail, item_status, created_by, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`
-    ).bind(itemId, dayId, type, time || null, name.trim(), query || null, lat ?? null, lng ?? null, mapLink || null, move || null, flightNo || null, voucher || null, memo || null, createdBy || null, insertAt)
+      `INSERT INTO items (id, day_id, type, time, name, query, lat, lng, map_link, move, flight_no, voucher, detail, cost, item_status, created_by, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`
+    ).bind(itemId, dayId, type, time || null, name.trim(), query || null, lat ?? null, lng ?? null, mapLink || null, move || null, flightNo || null, voucher || null, memo || null, cost ?? null, createdBy || null, insertAt)
   );
   await c.env.DB.batch(stmts);
 
@@ -391,11 +392,11 @@ app.post("/:id/items/:itemId/copy", async (c) => {
   );
   stmts.push(
     c.env.DB.prepare(
-      `INSERT INTO items (id, day_id, type, time, name, query, lat, lng, map_link, move, flight_no, voucher, detail, item_status, created_by, sort_order)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`
+      `INSERT INTO items (id, day_id, type, time, name, query, lat, lng, map_link, move, flight_no, voucher, detail, cost, item_status, created_by, sort_order)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'confirmed', ?, ?)`
     ).bind(
       newItemId, targetDayId, source.type, source.time, source.name, source.query, source.lat, source.lng,
-      source.map_link, source.move, source.flight_no, source.voucher, source.detail, body.createdBy || null, insertAt
+      source.map_link, source.move, source.flight_no, source.voucher, source.detail, source.cost, body.createdBy || null, insertAt
     )
   );
   await c.env.DB.batch(stmts);
@@ -432,7 +433,7 @@ app.patch("/:id/days/:dayId/reorder", async (c) => {
 const PATCHABLE_FIELDS = {
   type: "type", time: "time", name: "name", query: "query", lat: "lat", lng: "lng",
   mapLink: "map_link", move: "move", flightNo: "flight_no", voucher: "voucher", memo: "detail",
-  itemStatus: "item_status", pinned: "pinned",
+  cost: "cost", itemStatus: "item_status", pinned: "pinned",
 };
 app.patch("/:id/items/:itemId", async (c) => {
   const { id, itemId } = c.req.param();

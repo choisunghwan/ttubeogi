@@ -32,6 +32,11 @@ export function formatMonthLabel(dateStr) {
   return `${y}년 ${Number(m)}월`;
 }
 
+// 비용 표시 — "15,000원". 원화만 지원(누구나 간편하게 쓰는 게 목적이라 통화 선택 등은 안 둠).
+export function formatWon(n) {
+  return `${Number(n).toLocaleString("ko-KR")}원`;
+}
+
 const WEEKDAY = ["일", "월", "화", "수", "목", "금", "토"];
 
 // 홈 카드용 "9월 12일 – 15일 · 3박 4일" / "8월 23일 (토) · 하루" 포맷

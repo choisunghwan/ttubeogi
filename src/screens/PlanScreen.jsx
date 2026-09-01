@@ -16,7 +16,7 @@ import { ListIcon, MapPinIcon, TicketIcon, ShareIcon, RouteIcon } from "../compo
 import { getPlan, joinPlan, deleteItem, reorderItems, updateItem } from "../lib/api";
 import { optimizeRouteOrder } from "../lib/routeOptimize";
 import { getMemberId, rememberPlan } from "../lib/localPlans";
-import { formatWhen, formatDday } from "../utils";
+import { formatWhen, formatDday, formatWon } from "../utils";
 import { usePlanSocket } from "../lib/ws";
 import { getMe, KAKAO_LOGIN_URL } from "../lib/auth";
 
@@ -157,6 +157,11 @@ export default function PlanScreen() {
   const selectedDay = plan.days.find((d) => d.id === selectedDayId) || plan.days[0];
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
 
+  // 비용 입력한 항목만 더하면 되니까 items.cost가 없는(null) 항목은 그냥 빠진다.
+  const sumCost = (items) => items.reduce((sum, it) => sum + (it.cost || 0), 0);
+  const dayCost = selectedDay ? sumCost(selectedDay.items) : 0;
+  const tripCost = sumCost(plan.days.flatMap((d) => d.items));
+
   // "티켓" 탭 — 매번 날짜별로 뒤져서 찾지 않아도 항공편/바우처/첨부파일 있는 항목만
   // 전체 일정(모든 날짜)에서 모아 한 번에 보여준다. 항공편 항목은 실제 항공권처럼
   // 출발/도착 구간으로 보여주려고, 전체 일정을 순서대로 쭉 펼친 다음 "바로 다음 항목"을
@@ -294,6 +299,7 @@ export default function PlanScreen() {
             <WalkTtubeogi size={26} /> {plan.title}
           </h1>
           <div style={s.subtitle}>{when} · {nights}{dday ? ` · ${dday}` : ""}</div>
+          {tripCost > 0 && <div style={s.tripCostLabel}>총 지출 {formatWon(tripCost)}</div>}
         </div>
         <div style={s.members}>
           {plan.members.map((m) => (
@@ -374,6 +380,8 @@ export default function PlanScreen() {
           {selectedDay.items.length === 0 && (
             <div style={s.emptyState}>아직 추가된 일정이 없어요.<br />첫 항목을 추가해보세요!</div>
           )}
+
+          {dayCost > 0 && <div style={s.dayCostLabel}>오늘 지출 {formatWon(dayCost)}</div>}
 
           {(selectedDay.items.filter((it) => it.lat != null && it.lng != null && !it.pinned).length >= 3
             || preOptimizeOrder?.dayId === selectedDay.id) && (

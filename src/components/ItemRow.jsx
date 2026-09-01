@@ -8,6 +8,7 @@ import { CalendarIcon, TicketIcon, PlaneBadgeIcon, PaperclipIcon, CopyIcon, Lock
 import { buildItemICS, downloadICS } from "../lib/ics";
 import { attachmentUrl } from "../lib/api";
 import { kakaoMapUrl, naverMapUrl } from "../lib/mapLinks";
+import { formatWon } from "../utils";
 
 // 드래그 핸들만 dnd-kit 리스너를 붙인다 — 행 전체를 드래그 대상으로 하면
 // ✎/🗑 탭이나 스크롤 제스처와 자꾸 충돌해서, 잡을 수 있는 손잡이를 따로 둔다.
@@ -57,7 +58,10 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
       <div style={{ ...s.itemRowBadge, background: t.color }}>{t.emoji}</div>
       <div style={{ flex: 1, minWidth: 0 }}>
         {item.time && <div style={s.itemRowTime}>{item.time}</div>}
-        <div style={s.itemRowName}>{item.name}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+          <div style={s.itemRowName}>{item.name}</div>
+          {item.cost != null && <div style={s.itemRowCost}>{formatWon(item.cost)}</div>}
+        </div>
         <div style={{ ...s.itemRowMeta, display: "flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
           {[
             item.pinned && (

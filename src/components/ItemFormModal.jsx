@@ -40,6 +40,8 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
   const [flightNo, setFlightNo] = useState(item?.flightNo || "");
   const [voucher, setVoucher] = useState(item?.voucher || "");
   const [memo, setMemo] = useState(item?.memo || "");
+  // 화면엔 콤마 찍힌 문자열을 보여주지만 실제로 들고 있는 값은 숫자만 남긴 문자열 — 저장할 때 숫자로 변환.
+  const [cost, setCost] = useState(item?.cost != null ? String(item.cost) : "");
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -159,7 +161,7 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
     setSubmitting(true);
     setError(null);
     const geo = coordsValid ? { lat: coords.lat, lng: coords.lng } : { lat: null, lng: null };
-    const extra = { flightNo: flightNo.trim() || null, voucher: voucher.trim() || null, memo: memo.trim() || null };
+    const extra = { flightNo: flightNo.trim() || null, voucher: voucher.trim() || null, memo: memo.trim() || null, cost: cost ? Number(cost) : null };
     try {
       let itemId = item?.id;
       if (isEdit) {
@@ -245,6 +247,18 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
 
           <div style={s.formLabel}>이름</div>
           <input style={s.formInput} value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 와이탄" />
+
+          <div style={s.formLabel}>비용 (선택)</div>
+          <div style={{ position: "relative" }}>
+            <input
+              style={{ ...s.formInput, paddingRight: 40 }}
+              value={cost ? Number(cost).toLocaleString("ko-KR") : ""}
+              onChange={(e) => setCost(e.target.value.replace(/[^\d]/g, ""))}
+              inputMode="numeric"
+              placeholder="예: 15000"
+            />
+            <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: C.textMuted, fontWeight: 700 }}>원</span>
+          </div>
 
           <div style={s.formLabel}>지도 검색어/주소 (선택)</div>
           <div style={s.formRow}>
