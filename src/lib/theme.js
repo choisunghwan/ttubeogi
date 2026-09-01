@@ -1,19 +1,22 @@
 import { THEMES } from "../theme";
 
 const STORAGE_KEY = "ttubeogi_theme";
+// THEMES[0]이 기본 테마 — styles.js가 그 값을 [data-theme] 속성 없이 :root에 바로 깔아두기
+// 때문에(THEMES 배열 위 주석 참고), 여기서도 하드코딩 대신 THEMES[0].id를 그대로 따라간다.
+const DEFAULT_THEME_ID = THEMES[0].id;
 
 // <html data-theme="..."> 속성 하나로 앱 전체 색이 바뀐다 — 실제 색상 값은
 // styles.js가 :root/[data-theme] CSS 규칙으로 주입해둔 CSS 변수에 들어있다(src/theme.js THEMES 참고).
 export function getTheme() {
   try {
-    return localStorage.getItem(STORAGE_KEY) || "orange";
+    return localStorage.getItem(STORAGE_KEY) || DEFAULT_THEME_ID;
   } catch {
-    return "orange";
+    return DEFAULT_THEME_ID;
   }
 }
 
 export function applyTheme(themeId) {
-  if (themeId === "orange") {
+  if (themeId === DEFAULT_THEME_ID) {
     document.documentElement.removeAttribute("data-theme");
   } else {
     document.documentElement.setAttribute("data-theme", themeId);

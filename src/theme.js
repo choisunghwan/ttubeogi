@@ -20,10 +20,24 @@ export const C = {
 };
 
 // 마이페이지에서 고를 수 있는 테마 프리셋 — 각 테마의 실제 hex 값(스와치 미리보기용)과
-// CSS 변수로 주입할 값이 여기 한곳에 모여있다. 순서가 곧 마이페이지에 보이는 순서.
+// CSS 변수로 주입할 값이 여기 한곳에 모여있다. 순서가 곧 마이페이지에 보이는 순서이자,
+// THEMES[0]이 기본(별도 선택 안 했을 때 적용되는) 테마 — styles.js가 THEMES[0]의 값을
+// 그대로 :root(속성 없이도 적용)에 깔고, src/lib/theme.js도 이 배열의 첫 항목을 기본값으로 쓴다.
+// 그래서 기본 테마를 바꾸고 싶으면 이 배열 순서만 바꾸면 된다(다른 파일 손댈 필요 없음).
 export const THEMES = [
   {
-    id: "orange", label: "기본", desc: "따뜻한 테라코타",
+    id: "ktx", label: "코레일", desc: "KTX·SRT 실제 차체 색",
+    vars: {
+      "--c-paper": "#eef1f5", "--c-ink": "#1a2333", "--c-text-muted": "#5c6a80",
+      "--c-orange": "#0f3a7a", "--c-orange-deep": "#0a2c5e",
+      "--c-gold": "#5c6a80", "--c-gold-light": "#aebbcf", "--c-gold-deep": "#3a5480",
+      "--c-panel-1": "#f3f5f9", "--c-panel-2": "#e7ecf3", "--c-pill-bg": "#e4eaf1", "--c-divider": "#dde3ea",
+      "--c-border": "#ccd3dd", "--c-border-soft": "#dde3ea", "--c-chip-bg": "#e4e9f0",
+      "--c-shadow-upcoming": "rgba(15,58,122,.3)", "--c-shadow-hot": "rgba(92,106,128,.22)", "--c-shadow-fab": "rgba(10,44,94,.4)",
+    },
+  },
+  {
+    id: "orange", label: "테라코타", desc: "따뜻한 테라코타",
     vars: {
       "--c-paper": "#faf8f3", "--c-ink": "#3a2f24", "--c-text-muted": "#8a8170",
       "--c-orange": "#c97a42", "--c-orange-deep": "#a8592a",
@@ -53,17 +67,6 @@ export const THEMES = [
       "--c-panel-1": "#faf5f2", "--c-panel-2": "#f4e8e2", "--c-pill-bg": "#f3e2e5", "--c-divider": "#ece1dc",
       "--c-border": "#ddd0ca", "--c-border-soft": "#ece2de", "--c-chip-bg": "#f0e4e0",
       "--c-shadow-upcoming": "rgba(110,34,48,.3)", "--c-shadow-hot": "rgba(184,147,74,.22)", "--c-shadow-fab": "rgba(87,18,29,.4)",
-    },
-  },
-  {
-    id: "ktx", label: "코레일", desc: "KTX·SRT 실제 차체 색",
-    vars: {
-      "--c-paper": "#eef1f5", "--c-ink": "#1a2333", "--c-text-muted": "#5c6a80",
-      "--c-orange": "#0f3a7a", "--c-orange-deep": "#0a2c5e",
-      "--c-gold": "#5c6a80", "--c-gold-light": "#aebbcf", "--c-gold-deep": "#3a5480",
-      "--c-panel-1": "#f3f5f9", "--c-panel-2": "#e7ecf3", "--c-pill-bg": "#e4eaf1", "--c-divider": "#dde3ea",
-      "--c-border": "#ccd3dd", "--c-border-soft": "#dde3ea", "--c-chip-bg": "#e4e9f0",
-      "--c-shadow-upcoming": "rgba(15,58,122,.3)", "--c-shadow-hot": "rgba(92,106,128,.22)", "--c-shadow-fab": "rgba(10,44,94,.4)",
     },
   },
 ];
