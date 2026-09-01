@@ -19,6 +19,7 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
   const attribution = editor ? { member: editor, label: "수정" } : creator ? { member: creator, label: "추가" } : null;
   const [showAttachment, setShowAttachment] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [showMemo, setShowMemo] = useState(false); // 메모는 길면 목록이 늘어지니 기본은 접어둠
   const isImageAttachment = item.attachmentType?.startsWith("image/");
 
   function handleAddToCalendar(e) {
@@ -111,7 +112,14 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
             )}
           </div>
         )}
-        {item.memo && <div style={s.itemRowMemo}>{item.memo}</div>}
+        {item.memo && (
+          <>
+            <button type="button" style={s.itemRowMemoToggle} onClick={() => setShowMemo((v) => !v)}>
+              {showMemo ? "메모 접기 ▴" : "메모 보기 ▾"}
+            </button>
+            {showMemo && <div style={s.itemRowMemo}>{item.memo}</div>}
+          </>
+        )}
       </div>
       <div style={s.itemRowActions}>
         <button

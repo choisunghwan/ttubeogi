@@ -322,10 +322,16 @@ export const s = {
                   justifyContent: "center", fontSize: 16, flexShrink: 0, color: "#fff" },
   itemRowTime: { fontSize: 11.5, color: C.textMuted, fontWeight: 700 },
   itemRowName: { fontSize: 15, fontWeight: 800, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
-  itemRowCost: { fontSize: 13, fontWeight: 800, color: C.orangeDeep, flexShrink: 0, whiteSpace: "nowrap" },
+  // 영수증 느낌 나게 점선 테두리 + 탭체크 숫자 정렬(자릿수 바뀌어도 흔들리지 않게).
+  itemRowCost: { fontSize: 12.5, fontWeight: 800, color: C.orangeDeep, flexShrink: 0, whiteSpace: "nowrap",
+                 padding: "2px 8px", borderRadius: 20, border: `1.5px dashed ${C.orange}`, background: C.pillBg,
+                 fontVariantNumeric: "tabular-nums" },
   itemRowMeta: { fontSize: 12, color: C.textMuted, marginTop: 2 },
   itemRowMemo: { fontSize: 12.5, color: C.textMuted, marginTop: 4, padding: "6px 9px", background: C.chipBg,
                  borderRadius: 8, lineHeight: 1.4, whiteSpace: "pre-wrap", wordBreak: "break-word" },
+  // 메모가 길면 목록이 늘어져서 접었다 펼치는 토글 — 아이콘 없이 텍스트 링크로 가볍게.
+  itemRowMemoToggle: { border: "none", background: "transparent", padding: 0, marginTop: 3,
+                        color: C.textMuted, fontSize: 12, fontWeight: 700, cursor: "pointer" },
   itemRowThumb: { width: 28, height: 28, borderRadius: 7, objectFit: "cover", cursor: "pointer",
                    border: `1px solid ${C.goldLight}`, verticalAlign: "middle" },
   itemRowActions: { display: "flex", gap: 6, flexShrink: 0 },
