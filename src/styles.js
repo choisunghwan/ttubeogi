@@ -327,11 +327,24 @@ export const s = {
                  padding: "2px 8px", borderRadius: 20, border: `1.5px dashed ${C.orange}`, background: C.pillBg,
                  fontVariantNumeric: "tabular-nums" },
   itemRowMeta: { fontSize: 12, color: C.textMuted, marginTop: 2 },
-  itemRowMemo: { fontSize: 12.5, color: C.textMuted, marginTop: 4, padding: "6px 9px", background: C.chipBg,
+  itemRowMemo: { fontSize: 12.5, color: C.textMuted, padding: "6px 9px", background: C.chipBg,
                  borderRadius: 8, lineHeight: 1.4, whiteSpace: "pre-wrap", wordBreak: "break-word" },
-  // 메모가 길면 목록이 늘어져서 접었다 펼치는 토글 — 아이콘 없이 텍스트 링크로 가볍게.
+  // 메모/영수증이 길면 목록이 늘어져서 접었다 펼치는 토글 — 아이콘 없이 텍스트 링크로 가볍게.
   itemRowMemoToggle: { border: "none", background: "transparent", padding: 0, marginTop: 3,
                         color: C.textMuted, fontSize: 12, fontWeight: 700, cursor: "pointer" },
+  itemRowDetail: { display: "flex", flexDirection: "column", gap: 6, marginTop: 4 },
+  // 실제 영수증처럼 — 위쪽 절취선(점선), 품목/금액 한 줄, 맨 아래 바코드 장식. 색은 최대한
+  // 절제해서(테두리·바코드 다 무채색) 항목 목록 안에서 튀지 않고 깔끔하게 녹아들게 함.
+  receiptCard: { padding: "10px 12px 8px", background: "#fff", borderRadius: 8,
+                 border: `1px dashed ${C.border}`, borderTop: `2px dashed ${C.border}` },
+  receiptRow: { display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 },
+  receiptLabel: { fontSize: 12.5, color: C.textMuted, fontWeight: 600, minWidth: 0, overflow: "hidden",
+                   textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  receiptAmount: { fontFamily: SERIF_EN, fontSize: 15, fontWeight: 700, color: C.ink,
+                    fontVariantNumeric: "tabular-nums", flexShrink: 0 },
+  receiptBarcode: { width: "100%", height: 10, marginTop: 8,
+                     background: `repeating-linear-gradient(90deg, ${C.textMuted} 0 1px, transparent 1px 3px)`,
+                     opacity: 0.35 },
   itemRowThumb: { width: 28, height: 28, borderRadius: 7, objectFit: "cover", cursor: "pointer",
                    border: `1px solid ${C.goldLight}`, verticalAlign: "middle" },
   itemRowActions: { display: "flex", gap: 6, flexShrink: 0 },

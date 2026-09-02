@@ -19,7 +19,7 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
   const attribution = editor ? { member: editor, label: "수정" } : creator ? { member: creator, label: "추가" } : null;
   const [showAttachment, setShowAttachment] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
-  const [showMemo, setShowMemo] = useState(false); // 메모는 길면 목록이 늘어지니 기본은 접어둠
+  const [showDetail, setShowDetail] = useState(false); // 메모/영수증은 늘어지니 기본은 접어둠
   const isImageAttachment = item.attachmentType?.startsWith("image/");
 
   function handleAddToCalendar(e) {
@@ -112,12 +112,25 @@ export default function ItemRow({ item, creator, editor, planId, dayDate, planTi
             )}
           </div>
         )}
-        {item.memo && (
+        {(item.memo || item.cost != null) && (
           <>
-            <button type="button" style={s.itemRowMemoToggle} onClick={() => setShowMemo((v) => !v)}>
-              {showMemo ? "메모 접기 ▴" : "메모 보기 ▾"}
+            <button type="button" style={s.itemRowMemoToggle} onClick={() => setShowDetail((v) => !v)}>
+              {showDetail ? "상세 접기 ▴" : "상세 보기 ▾"}
             </button>
-            {showMemo && <div style={s.itemRowMemo}>{item.memo}</div>}
+            {showDetail && (
+              <div style={s.itemRowDetail}>
+                {item.memo && <div style={s.itemRowMemo}>{item.memo}</div>}
+                {item.cost != null && (
+                  <div style={s.receiptCard}>
+                    <div style={s.receiptRow}>
+                      <span style={s.receiptLabel}>{item.name}</span>
+                      <span style={s.receiptAmount}>{formatWon(item.cost)}</span>
+                    </div>
+                    <div style={s.receiptBarcode} />
+                  </div>
+                )}
+              </div>
+            )}
           </>
         )}
       </div>
