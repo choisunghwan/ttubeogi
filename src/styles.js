@@ -228,6 +228,18 @@ export const s = {
 
   // 폼 공통 (일정 만들기 / 참여 게이트 / 항목 모달)
   formLabel: { fontSize: 13, fontWeight: 700, color: C.textMuted, marginBottom: 7, marginTop: 18 },
+  // 항목 폼이 필드가 너무 많아 한 줄 한 줄 이어지면 지저분해 보인다는 피드백으로, 묶음 사이를
+  // 구분선+더 굵은 라벨로 나누고("위치" 등), 비용은 아예 박스로 감싸서 눈에 확 띄게 함.
+  formSectionLabel: { display: "flex", alignItems: "center", gap: 6, fontSize: 13.5, fontWeight: 800,
+                       color: C.ink, marginTop: 26, marginBottom: 10, paddingTop: 18, borderTop: `1px solid ${C.divider}` },
+  formCostBox: { display: "flex", alignItems: "center", gap: 10, marginTop: 18, padding: "10px 14px",
+                 borderRadius: 12, border: `1.5px solid ${C.orange}`, background: C.pillBg },
+  formCostBoxLabel: { fontSize: 13.5, fontWeight: 800, color: C.orangeDeep, flexShrink: 0, whiteSpace: "nowrap" },
+  // 이동수단/항공편/바우처/메모/첨부는 매번 다 쓰는 게 아니라 접어두는 부가 정보 묶음 —
+  // 그 앞에 두는 토글. 점선 테두리로 "펼치면 더 있다"는 느낌을 줌.
+  formSectionToggle: { width: "100%", marginTop: 22, padding: "11px 0", borderRadius: 12,
+                        border: `1.5px dashed ${C.borderStrong}`, background: "transparent", color: C.textMuted,
+                        fontSize: 13.5, fontWeight: 700, cursor: "pointer" },
   // fontSize 16 미만이면 iOS Safari가 이 입력창에 포커스될 때 화면을 자동으로 확대해버려서
   // "탭하면 사이즈가 깨진다"는 증상으로 보인다 — 16 유지 필수.
   formInput: { width: "100%", padding: "12px 14px", borderRadius: 12, border: `1px solid ${C.borderStrong}`,

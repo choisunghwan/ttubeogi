@@ -103,6 +103,12 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
   const [linkFillError, setLinkFillError] = useState(null);
   const isMapServiceLink = /naver\.(com|me)|kakao\.com|kko\.to/.test(mapLink);
 
+  // 이동수단·항공편·바우처·메모·첨부는 매번 다 안 쓰는 부가 정보라 기본은 접어둔다 — 폼이
+  // 한눈에 안 들어올 만큼 길어지는 게 진짜 문제였음. 이미 뭔가 채워져 있는 항목을 수정할 땐
+  // (move는 기본값 "도보" 자체는 "안 채운 것"으로 침) 접힌 채로 열어서 기존 값을 숨기지 않는다.
+  const hasExtraFilled = Boolean(item?.flightNo || item?.voucher || item?.memo || item?.attachmentName || (item?.move && item.move !== "도보"));
+  const [showExtra, setShowExtra] = useState(hasExtraFilled);
+
   const currentTerm = (query.trim() || name.trim());
   const coordsValid = Boolean(coords) && currentTerm !== "" && searchedFor === currentTerm;
 
@@ -248,18 +254,21 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
           <div style={s.formLabel}>이름</div>
           <input style={s.formInput} value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 와이탄" />
 
-          <div style={s.formLabel}>비용 (선택)</div>
-          <div style={{ position: "relative" }}>
-            <input
-              style={{ ...s.formInput, paddingRight: 40 }}
-              value={cost ? Number(cost).toLocaleString("ko-KR") : ""}
-              onChange={(e) => setCost(e.target.value.replace(/[^\d]/g, ""))}
-              inputMode="numeric"
-              placeholder="예: 15000"
-            />
-            <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: C.textMuted, fontWeight: 700 }}>원</span>
+          <div style={s.formCostBox}>
+            <span style={s.formCostBoxLabel}>💰 비용</span>
+            <div style={{ position: "relative", flex: 1 }}>
+              <input
+                style={{ ...s.formInput, paddingRight: 36, background: "#fff" }}
+                value={cost ? Number(cost).toLocaleString("ko-KR") : ""}
+                onChange={(e) => setCost(e.target.value.replace(/[^\d]/g, ""))}
+                inputMode="numeric"
+                placeholder="선택 입력"
+              />
+              <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: C.textMuted, fontWeight: 700 }}>원</span>
+            </div>
           </div>
 
+          <div style={s.formSectionLabel}>📍 위치</div>
           <div style={s.formLabel}>지도 검색어/주소 (선택)</div>
           <div style={s.formRow}>
             <input
@@ -311,56 +320,64 @@ export default function ItemFormModal({ planId, dayId, days = [], item, memberId
           )}
           {linkFillError && <div style={s.formHint}>{linkFillError}</div>}
 
-          <div style={s.formLabel}>다음 장소까지 이동수단</div>
-          <div style={s.pickerGrid}>
-            {MOVE_OPTIONS.map((m) => (
-              <button type="button" key={m}
-                style={{ ...s.pickerBtn, ...(move === m ? s.pickerBtnOn : {}) }}
-                onClick={() => setMove(m)}>
-                {m}
-              </button>
-            ))}
-          </div>
-          <input style={{ ...s.formInput, marginTop: 8 }} value={move} onChange={(e) => setMove(e.target.value)} placeholder="직접 입력도 가능" />
+          <button type="button" style={s.formSectionToggle} onClick={() => setShowExtra((v) => !v)}>
+            {showExtra ? "추가 정보 접기 ▴" : "＋ 이동수단·항공편·바우처·메모·첨부 ▾"}
+          </button>
 
-          {type === "항공" && (
+          {showExtra && (
             <>
-              <div style={s.formLabel}>항공편명 (선택)</div>
-              <input style={s.formInput} value={flightNo} onChange={(e) => setFlightNo(e.target.value)} placeholder="예: KE123" />
+              <div style={s.formLabel}>다음 장소까지 이동수단</div>
+              <div style={s.pickerGrid}>
+                {MOVE_OPTIONS.map((m) => (
+                  <button type="button" key={m}
+                    style={{ ...s.pickerBtn, ...(move === m ? s.pickerBtnOn : {}) }}
+                    onClick={() => setMove(m)}>
+                    {m}
+                  </button>
+                ))}
+              </div>
+              <input style={{ ...s.formInput, marginTop: 8 }} value={move} onChange={(e) => setMove(e.target.value)} placeholder="직접 입력도 가능" />
+
+              {type === "항공" && (
+                <>
+                  <div style={s.formLabel}>항공편명 (선택)</div>
+                  <input style={s.formInput} value={flightNo} onChange={(e) => setFlightNo(e.target.value)} placeholder="예: KE123" />
+                </>
+              )}
+              <div style={s.formLabel}>바우처·예약번호 (선택)</div>
+              <input style={s.formInput} value={voucher} onChange={(e) => setVoucher(e.target.value)} placeholder="예: 예약번호, 확인코드" />
+
+              <div style={s.formLabel}>메모 (선택)</div>
+              <textarea style={s.formTextarea} value={memo} onChange={(e) => setMemo(e.target.value)}
+                placeholder="예: 예약 시 창가 자리 요청함, 현금 결제만 가능" rows={3} />
+
+              <div style={s.formLabel}>항공권·기차표·바우처 파일 (선택)</div>
+              {attachmentInfo ? (
+                <div style={s.attachmentPreview}>
+                  {previewUrl ? (
+                    <img src={previewUrl} alt={attachmentInfo.name} style={s.attachmentThumbSmall} />
+                  ) : (
+                    <PaperclipIcon size={15} color={C.orangeDeep} />
+                  )}
+                  <span style={s.attachmentPreviewName}>{attachmentInfo.name}</span>
+                  {isEdit && item.attachmentName === attachmentInfo.name && !attachmentFile && !previewUrl && (
+                    <a href={attachmentUrl(planId, item.id)} target="_blank" rel="noreferrer" style={s.attachmentPreviewLink}>
+                      보기
+                    </a>
+                  )}
+                  <button type="button" style={s.attachmentRemoveBtn} disabled={removingAttachment} onClick={handleRemoveAttachment}>
+                    {removingAttachment ? "삭제 중…" : "삭제"}
+                  </button>
+                </div>
+              ) : (
+                <label style={s.attachmentPickBtn}>
+                  <PaperclipIcon size={15} color={C.textMuted} /> 사진 또는 PDF 첨부
+                  <input type="file" accept="image/*,application/pdf" onChange={handlePickFile} style={{ display: "none" }} />
+                </label>
+              )}
+              {attachmentError && <div style={s.formError}>{attachmentError}</div>}
             </>
           )}
-          <div style={s.formLabel}>바우처·예약번호 (선택)</div>
-          <input style={s.formInput} value={voucher} onChange={(e) => setVoucher(e.target.value)} placeholder="예: 예약번호, 확인코드" />
-
-          <div style={s.formLabel}>메모 (선택)</div>
-          <textarea style={s.formTextarea} value={memo} onChange={(e) => setMemo(e.target.value)}
-            placeholder="예: 예약 시 창가 자리 요청함, 현금 결제만 가능" rows={3} />
-
-          <div style={s.formLabel}>항공권·기차표·바우처 파일 (선택)</div>
-          {attachmentInfo ? (
-            <div style={s.attachmentPreview}>
-              {previewUrl ? (
-                <img src={previewUrl} alt={attachmentInfo.name} style={s.attachmentThumbSmall} />
-              ) : (
-                <PaperclipIcon size={15} color={C.orangeDeep} />
-              )}
-              <span style={s.attachmentPreviewName}>{attachmentInfo.name}</span>
-              {isEdit && item.attachmentName === attachmentInfo.name && !attachmentFile && !previewUrl && (
-                <a href={attachmentUrl(planId, item.id)} target="_blank" rel="noreferrer" style={s.attachmentPreviewLink}>
-                  보기
-                </a>
-              )}
-              <button type="button" style={s.attachmentRemoveBtn} disabled={removingAttachment} onClick={handleRemoveAttachment}>
-                {removingAttachment ? "삭제 중…" : "삭제"}
-              </button>
-            </div>
-          ) : (
-            <label style={s.attachmentPickBtn}>
-              <PaperclipIcon size={15} color={C.textMuted} /> 사진 또는 PDF 첨부
-              <input type="file" accept="image/*,application/pdf" onChange={handlePickFile} style={{ display: "none" }} />
-            </label>
-          )}
-          {attachmentError && <div style={s.formError}>{attachmentError}</div>}
 
           {error && <div style={s.formError}>{error}</div>}
 
