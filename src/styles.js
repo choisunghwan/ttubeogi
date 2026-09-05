@@ -98,7 +98,11 @@ export const s = {
   progressLabel: { fontSize: 12, color: C.textMuted, fontWeight: 600 },
   progressTrack: { height: 6, background: "#eae4d6", borderRadius: 4, marginTop: 5, overflow: "hidden" },
   progressFill: { height: "100%", background: `linear-gradient(90deg, ${C.orange}, #f0a869)`, borderRadius: 4, transition: "width .4s" },
-  tripMapFrame: { position: "relative", borderRadius: 16, overflow: "hidden", border: "2px solid #2f3d2c",
+  // isolation: "isolate" — Leaflet 내부 컨트롤/줌/툴팁 pane들이 z-index 400~1000대를 쓰는데,
+  // 이 프레임이 새 스태킹 컨텍스트를 만들어두지 않으면 그 값들이 페이지 전역 스태킹 순서로 새어나가서
+  // z-index가 훨씬 낮은 모달 오버레이(도움말 등, 50)보다 위에 떠버린다 — "지도 탭에서 도움말 누르면
+  // 깨진다"는 문제의 원인. isolate로 감싸서 지도 내부 z-index를 이 프레임 안에서만 유효하게 가둔다.
+  tripMapFrame: { position: "relative", isolation: "isolate", borderRadius: 16, overflow: "hidden", border: "2px solid #2f3d2c",
                   boxShadow: "0 8px 24px rgba(0,0,0,.12)", aspectRatio: "4 / 3", marginBottom: 14 },
   tripMapFrameFullscreen: { position: "fixed", inset: 0, zIndex: 500, borderRadius: 0, border: "none",
                             aspectRatio: "auto", marginBottom: 0, boxShadow: "none" },
