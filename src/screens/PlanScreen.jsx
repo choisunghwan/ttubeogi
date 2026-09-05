@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
@@ -9,6 +9,7 @@ import ItemFormModal from "../components/ItemFormModal";
 import CopyItemModal from "../components/CopyItemModal";
 import EditPlanModal from "../components/EditPlanModal";
 import HelpGuideModal from "../components/HelpGuideModal";
+import DayShareCard from "../components/DayShareCard";
 import PlanMap from "../components/PlanMap";
 import ItemRow from "../components/ItemRow";
 import TicketCard from "../components/TicketCard";
@@ -19,6 +20,7 @@ import { getMemberId, rememberPlan } from "../lib/localPlans";
 import { formatWhen, formatDday, formatWon, timeBlockOf, TIME_BLOCK_EMOJI } from "../utils";
 import { usePlanSocket } from "../lib/ws";
 import { getMe, KAKAO_LOGIN_URL } from "../lib/auth";
+import { captureNodeAsBlob, shareOrDownloadImage } from "../lib/shareImage";
 
 function JoinGate({ planId, onJoined }) {
   const navigate = useNavigate();
@@ -101,6 +103,8 @@ export default function PlanScreen() {
   const [highlightItemId, setHighlightItemId] = useState(null);
   const [preOptimizeOrder, setPreOptimizeOrder] = useState(null); // { dayId, itemIds } | null — 동선 최적화 직전 순서(되돌리기용)
   const [me, setMe] = useState(undefined); // undefined = 확인 중, null = 비로그인 — 커뮤니티 공개 토글에 필요
+  const [sharingImage, setSharingImage] = useState(false);
+  const shareCardRef = useRef(null);
 
   useEffect(() => { getMe().then(setMe); }, []);
 
@@ -190,6 +194,27 @@ export default function PlanScreen() {
       await navigator.share({ title: plan.title, text: `${plan.title} 일정 보러 가기`, url: shareUrl });
     } catch (e) {
       // 사용자가 공유창을 취소한 경우(AbortError)는 조용히 무시
+    }
+  }
+
+  // 하루 일정을 사진 한 장으로 만들어 카톡 등으로 바로 보낼 수 있게. 화면 밖에 항상 그려둔
+  // DayShareCard를 캡처해서 파일로 만들고, 지원되는 기기면 공유창을, 아니면 다운로드를 띄운다.
+  async function handleShareDayImage() {
+    if (!shareCardRef.current || sharingImage) return;
+    setSharingImage(true);
+    try {
+      const blob = await captureNodeAsBlob(shareCardRef.current);
+      const dayLabel = plan.days.length > 1 ? `${plan.days.findIndex((d) => d.id === selectedDay.id) + 1}일차` : selectedDay.date;
+      const result = await shareOrDownloadImage(blob, `${plan.title}-${dayLabel}.png`, {
+        title: plan.title, text: `${plan.title} 일정`,
+      });
+      if (result === "downloaded") {
+        window.alert("사진을 저장했어요! 카카오톡에서 사진 첨부로 보내보세요.");
+      }
+    } catch (e) {
+      window.alert("사진을 만드는 데 실패했어요: " + e.message);
+    } finally {
+      setSharingImage(false);
     }
   }
 
@@ -335,6 +360,16 @@ export default function PlanScreen() {
       )}
 
       {selectedDay && (
+        <button
+          style={{ ...s.shareImageBtn, ...(sharingImage ? s.shareImageBtnBusy : {}) }}
+          disabled={sharingImage}
+          onClick={handleShareDayImage}
+        >
+          {sharingImage ? "사진 만드는 중…" : "📸 이 날 일정 사진으로 공유"}
+        </button>
+      )}
+
+      {selectedDay && (
         <div style={{ ...s.pickerGrid, marginBottom: 14, flexWrap: "nowrap" }}>
           <button style={{ ...s.pickerBtn, flex: 1, padding: "10px 4px", display: "flex", alignItems: "center", justifyContent: "center", gap: 4, ...(viewTab === "list" ? s.pickerBtnOn : {}) }} onClick={() => setViewTab("list")}>
             <ListIcon size={13} color={viewTab === "list" ? C.orangeDeep : C.ink} /> 일정
@@ -471,6 +506,15 @@ export default function PlanScreen() {
       )}
 
       {showHelp && <HelpGuideModal onClose={() => setShowHelp(false)} />}
+
+      {/* 화면엔 안 보이지만(화면 밖으로 밀어둠) 항상 그려둬서, 버튼 누르는 순간 바로 캡처할 수 있게 함
+          — display:none으로 숨기면 html2canvas가 레이아웃을 못 잡으니 position으로만 숨긴다. */}
+      {selectedDay && (
+        <div style={{ position: "fixed", top: 0, left: -9999, pointerEvents: "none" }} aria-hidden="true">
+          <DayShareCard ref={shareCardRef} plan={plan} day={selectedDay}
+                        dayIndex={plan.days.findIndex((d) => d.id === selectedDay.id)} dayCost={dayCost} />
+        </div>
+      )}
     </div>
   );
 }

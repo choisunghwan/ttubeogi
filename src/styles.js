@@ -323,6 +323,41 @@ export const s = {
                      borderRadius: 8, cursor: "pointer", flexShrink: 0, display: "flex",
                      alignItems: "center", justifyContent: "center" },
 
+  // 일정 사진 공유 버튼 — 링크 공유(shareBar)와는 별개로, 하루 일정을 카톡으로 바로 보낼 수 있는
+  // "사진 한 장"으로 만들어주는 기능. 위 링크 공유 바로 아래 얇게 붙여서 "이것도 공유 기능"이라는
+  // 걸 시각적으로 묶는다.
+  shareImageBtn: { width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                    border: `1.5px solid ${C.goldLight}`, background: C.panel1, color: C.ink,
+                    fontSize: 13, fontWeight: 700, padding: "10px 0", borderRadius: 12,
+                    cursor: "pointer", marginBottom: 14 },
+  shareImageBtnBusy: { opacity: 0.6, cursor: "default" },
+
+  // 사진으로 내보내는 일정 카드 — 화면 밖(포지션만 옮김)에 항상 그려두고 html2canvas로 캡처한다.
+  // 다른 티켓류 카드와 같은 보딩패스 톤(세리프+골드 트림)을 그대로 가져와서 "따로 만든 화면"이 아니라
+  // 앱 안에서 보던 것과 같은 룩으로 공유되게 한다.
+  shareCard: { width: 480, background: C.paper, padding: "28px 26px 24px", boxSizing: "border-box" },
+  shareCardEyebrow: { fontFamily: SERIF_EN, fontStyle: "italic", fontSize: 12, fontWeight: 700,
+                      letterSpacing: 2, color: C.gold, textTransform: "uppercase", marginBottom: 6 },
+  shareCardTitle: { fontFamily: SERIF_KO, fontSize: 24, fontWeight: 700, color: C.ink, marginBottom: 4 },
+  shareCardSub: { fontSize: 13.5, color: C.textMuted, fontWeight: 600 },
+  shareCardPerforation: { borderTop: `2px dashed ${C.goldLight}`, margin: "18px 0" },
+  shareCardBlockLabel: { fontSize: 12.5, fontWeight: 800, color: C.gold, letterSpacing: 0.3, margin: "14px 0 8px" },
+  shareCardItemRow: { display: "flex", alignItems: "center", gap: 10, padding: "8px 0" },
+  shareCardItemTime: { fontSize: 12, fontWeight: 700, color: C.textMuted, width: 42, flexShrink: 0,
+                        fontVariantNumeric: "tabular-nums" },
+  shareCardItemBadge: { width: 26, height: 26, borderRadius: "50%", display: "flex", alignItems: "center",
+                         justifyContent: "center", fontSize: 13, flexShrink: 0 },
+  shareCardItemName: { flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: C.ink,
+                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" },
+  shareCardItemCost: { fontSize: 12.5, fontWeight: 700, color: C.orangeDeep, flexShrink: 0,
+                        fontVariantNumeric: "tabular-nums" },
+  shareCardFooter: { marginTop: 6, display: "flex", justifyContent: "space-between", alignItems: "baseline" },
+  shareCardFooterCost: { fontSize: 15, fontWeight: 800, color: C.ink },
+  shareCardFooterCostLabel: { fontSize: 12, color: C.textMuted, fontWeight: 600, marginRight: 6 },
+  shareCardBrand: { display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                     fontFamily: SERIF_EN, fontStyle: "italic", fontSize: 11, fontWeight: 700,
+                     letterSpacing: 1, color: C.gold, marginTop: 16 },
+
   // 날짜 칩
   dayChips: { display: "flex", gap: 8, overflowX: "auto", marginBottom: 14, paddingBottom: 2 },
   dayChip: { flexShrink: 0, padding: "8px 14px", borderRadius: 20, border: `1.5px solid ${C.borderStrong}`,
@@ -472,6 +507,8 @@ export const s = {
   calSelectedTitle: { fontSize: 14, fontWeight: 700, color: C.ink, whiteSpace: "nowrap", overflow: "hidden",
                        textOverflow: "ellipsis" },
   calSelectedWhen: { fontSize: 11.5, color: C.textMuted, marginTop: 1 },
+  calSelectedExportBtn: { flexShrink: 0, width: 30, height: 30, borderRadius: 8, border: `1px solid ${C.border}`,
+                           background: C.panel1, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" },
   calExportBtn: { width: "100%", marginTop: 20, padding: "15px 0", borderRadius: 14, border: "none",
                   background: C.gold, color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },

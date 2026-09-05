@@ -91,6 +91,13 @@ export default function CalendarScreen() {
     downloadICS("뚜버기_전체일정.ics", ics);
   }
 
+  // 전체 내보내기 말고, 달력에서 클릭해서 펼쳐본 그 날짜의 일정 하나만 따로 내보내고 싶을 때.
+  function handleExportOne(e, plan) {
+    e.stopPropagation(); // 행 클릭(일정 상세로 이동)까지 같이 실행되지 않게
+    const ics = buildPlansICS([plan]);
+    downloadICS(`뚜버기_${plan.title}.ics`, ics);
+  }
+
   return (
     <div style={s.pad}>
       <div style={s.head}>
@@ -155,6 +162,9 @@ export default function CalendarScreen() {
                 <div style={s.calSelectedTitle}>{p.title}</div>
                 <div style={s.calSelectedWhen}>{formatWhen(p.startDate, p.endDate).when}</div>
               </div>
+              <button style={s.calSelectedExportBtn} title="이 일정만 캘린더로 내보내기" onClick={(e) => handleExportOne(e, p)}>
+                <CalendarIcon size={14} color={C.gold} />
+              </button>
               <span style={{ color: C.gold, fontWeight: 800 }}>›</span>
             </div>
           ))}
