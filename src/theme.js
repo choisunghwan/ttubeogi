@@ -69,6 +69,25 @@ export const THEMES = [
       "--c-shadow-upcoming": "rgba(110,34,48,.3)", "--c-shadow-hot": "rgba(184,147,74,.22)", "--c-shadow-fab": "rgba(87,18,29,.4)",
     },
   },
+  {
+    // 국민은행 창구·현금카드에서 자주 보이는 화이트+블랙+옐로 조합에서 착안. 은행 UI 특유의
+    // "각지고 절제된" 인상을 이 앱의 카드 톤 안에서 흉내내려고, 채워지는 면(버튼 배경 등,
+    // orange 자리)은 은행 창구 사인물의 검정을 쓴다. 진짜 국민은행 노랑(#ffcc00)은 gold가 아니라
+    // goldLight에 넣어뒀다 — gold는 이 앱에서 이탤릭 글자색·흰 글씨 배경 등 "읽혀야 하는 자리"에도
+    // 두루 쓰이는데, 채도 높은 순수 노랑을 텍스트/배경으로 쓰면 흰 배경·흰 글씨 둘 다 대비가
+    // 안 나온다. goldLight는 이 앱에서 항상 테두리·점선·바코드 줄무늬 같은 "장식 전용" 자리에만
+    // 쓰여서 대비 걱정 없이 진짜 브랜드 노랑을 그대로 쓸 수 있다 — 결과적으로 실제 은행에서도
+    // 그 노랑을 넓은 면이 아니라 포인트로만 쓰는 것과 같은 방식이 된다.
+    id: "kb", label: "국민은행", desc: "화이트·블랙·옐로 포인트",
+    vars: {
+      "--c-paper": "#ffffff", "--c-ink": "#222222", "--c-text-muted": "#5a5a5a",
+      "--c-orange": "#222222", "--c-orange-deep": "#000000",
+      "--c-gold": "#b8901f", "--c-gold-light": "#ffcc00", "--c-gold-deep": "#8a6d00",
+      "--c-panel-1": "#fafafa", "--c-panel-2": "#f2f2f2", "--c-pill-bg": "#f5f5f5", "--c-divider": "#eeeeee",
+      "--c-border": "#dddddd", "--c-border-soft": "#eeeeee", "--c-chip-bg": "#f0f0f0",
+      "--c-shadow-upcoming": "rgba(0,0,0,.25)", "--c-shadow-hot": "rgba(0,0,0,.15)", "--c-shadow-fab": "rgba(0,0,0,.35)",
+    },
+  },
 ];
 
 // 멤버 아바타 색은 서버(worker/routes/plans.js MEMBER_COLORS)가 가입 시점에 정해서 D1에 그대로
