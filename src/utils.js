@@ -32,6 +32,18 @@ export function formatMonthLabel(dateStr) {
   return `${y}년 ${Number(m)}월`;
 }
 
+// 하루 일정을 아침/점심/저녁으로 묶어서 보여줄 때 쓰는 구간 — 시간 미정 항목은 별도 구간으로.
+// 항목이 이미 시간순(또는 드래그로 재정렬한 순서)으로 나열돼 있다는 전제로, 목록을 순서대로
+// 훑으면서 구간이 바뀌는 지점에만 헤더를 끼워 넣는 식으로 쓴다(정렬 자체를 새로 하지 않음).
+export function timeBlockOf(time) {
+  if (!time) return "시간 미정";
+  const hour = Number(time.split(":")[0]);
+  if (hour < 12) return "오전";
+  if (hour < 18) return "오후";
+  return "저녁";
+}
+export const TIME_BLOCK_EMOJI = { "오전": "🌅", "오후": "☀️", "저녁": "🌙", "시간 미정": "🕓" };
+
 // 비용 표시 — "15,000원". 원화만 지원(누구나 간편하게 쓰는 게 목적이라 통화 선택 등은 안 둠).
 export function formatWon(n) {
   return `${Number(n).toLocaleString("ko-KR")}원`;

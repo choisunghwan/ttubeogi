@@ -16,7 +16,7 @@ import { ListIcon, MapPinIcon, TicketIcon, ShareIcon, RouteIcon } from "../compo
 import { getPlan, joinPlan, deleteItem, reorderItems, updateItem } from "../lib/api";
 import { optimizeRouteOrder } from "../lib/routeOptimize";
 import { getMemberId, rememberPlan } from "../lib/localPlans";
-import { formatWhen, formatDday, formatWon } from "../utils";
+import { formatWhen, formatDday, formatWon, timeBlockOf, TIME_BLOCK_EMOJI } from "../utils";
 import { usePlanSocket } from "../lib/ws";
 import { getMe, KAKAO_LOGIN_URL } from "../lib/auth";
 
@@ -403,22 +403,30 @@ export default function PlanScreen() {
 
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={selectedDay.items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-              {selectedDay.items.map((item) => (
-                <ItemRow
-                  key={item.id}
-                  item={item}
-                  creator={plan.members.find((m) => m.id === item.createdBy)}
-                  editor={plan.members.find((m) => m.id === item.updatedBy)}
-                  planId={planId}
-                  dayDate={selectedDay.date}
-                  planTitle={plan.title}
-                  highlighted={item.id === highlightItemId}
-                  onEdit={() => setModalState({ item })}
-                  onDelete={() => handleDelete(item)}
-                  onCopy={() => setCopyingItem(item)}
-                  onTogglePin={() => handleTogglePin(item)}
-                />
-              ))}
+              {selectedDay.items.map((item, i) => {
+                const block = timeBlockOf(item.time);
+                const showBlockHeader = i === 0 || timeBlockOf(selectedDay.items[i - 1].time) !== block;
+                return (
+                  <React.Fragment key={item.id}>
+                    {showBlockHeader && (
+                      <div style={s.timeBlockLabel}>{TIME_BLOCK_EMOJI[block]} {block}</div>
+                    )}
+                    <ItemRow
+                      item={item}
+                      creator={plan.members.find((m) => m.id === item.createdBy)}
+                      editor={plan.members.find((m) => m.id === item.updatedBy)}
+                      planId={planId}
+                      dayDate={selectedDay.date}
+                      planTitle={plan.title}
+                      highlighted={item.id === highlightItemId}
+                      onEdit={() => setModalState({ item })}
+                      onDelete={() => handleDelete(item)}
+                      onCopy={() => setCopyingItem(item)}
+                      onTogglePin={() => handleTogglePin(item)}
+                    />
+                  </React.Fragment>
+                );
+              })}
             </SortableContext>
           </DndContext>
 

@@ -200,6 +200,7 @@ export const s = {
   communityPublisher: { fontSize: 11.5, color: C.textMuted, fontWeight: 600 },
   // 지난 일정 월별 그룹 라벨 + "더보기" — 쌓일수록 한눈에 안 들어오니 최근 2개월만 먼저 보여주고 접어둠.
   pastMonthLabel: { fontSize: 12, fontWeight: 800, color: C.textMuted, margin: "14px 0 8px", letterSpacing: 0.2 },
+  timeBlockLabel: { fontSize: 12, fontWeight: 800, color: C.textMuted, margin: "16px 0 8px", letterSpacing: 0.2 },
   pastShowMoreBtn: { width: "100%", marginTop: 4, padding: "12px 0", borderRadius: 12, border: `1px dashed ${C.border}`,
                       background: "transparent", color: C.textMuted, fontSize: 13, fontWeight: 700, cursor: "pointer" },
   newBtn: { width: "100%", marginTop: 22, padding: "15px 0", borderRadius: 14, border: "none",
